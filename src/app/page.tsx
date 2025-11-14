@@ -3,7 +3,7 @@
 import { useNavigation } from '@/contexts/NavigationContext';
 import { Dashboard } from '@/features/dashboard/Dashboard';
 import { Designer } from '@/features/designer/Designer';
-import { Runner } from '@/features/runner/Runner';
+import { RealRunner } from '@/features/runner/RealRunner';
 import { Reports } from '@/features/reports/Reports';
 
 // Placeholder for Settings page
@@ -30,7 +30,7 @@ export default function Home() {
     case 'designer':
       return <Designer />;
     case 'runner':
-      return <Runner />;
+      return <RealRunner />;
     case 'reports':
       return <Reports testRunId={reportId} />;
     case 'settings':

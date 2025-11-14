@@ -12,8 +12,6 @@ Create a comprehensive dashboard for viewing, analyzing, and comparing test resu
 
 ### 1. Main Dashboard Overview
 
-**Location:** `/app/dashboard/page.tsx`
-
 **Layout Sections:**
 1. **Hero Stats:** Key metrics at a glance
 2. **Recent Test Runs:** List of latest executions
@@ -71,7 +69,6 @@ interface TestRunListItem {
 
 ### 3. Detailed Test Report Page
 
-**Location:** `/app/reports/[testRunId]/page.tsx`
 
 **Page Structure:**
 ```

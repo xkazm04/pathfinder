@@ -5,7 +5,9 @@
       "Bash(npm run dev:*)",
       "Bash(npm install:*)",
       "Bash(taskkill /PID 14584 /F)",
-      "Bash(powershell -Command \"Stop-Process -Id 14584 -Force\")"
+      "Bash(powershell -Command \"Stop-Process -Id 14584 -Force\")",
+      "Bash(taskkill:*)",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []
