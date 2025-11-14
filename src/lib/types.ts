@@ -119,3 +119,66 @@ export interface PlaywrightConfig {
   slowMo?: number;
   timeout?: number;
 }
+
+// Test Scenario Types (for AI-generated tests)
+
+export interface TestScenario {
+  id: string;
+  name: string;
+  description: string;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  category: 'functional' | 'visual' | 'responsive' | 'accessibility';
+  steps: TestStep[];
+  expectedOutcomes: string[];
+  viewports: string[];
+}
+
+export interface TestStep {
+  action: 'navigate' | 'click' | 'fill' | 'assert' | 'screenshot' | 'wait' | 'hover' | 'select';
+  selector?: string;
+  value?: string;
+  description: string;
+}
+
+export interface CodebaseAnalysis {
+  framework: string;
+  pages: PageAnalysis[];
+  forms: FormAnalysis[];
+  navigation: NavigationAnalysis;
+}
+
+export interface PageAnalysis {
+  path: string;
+  components: string[];
+  interactions: string[];
+}
+
+export interface FormAnalysis {
+  id: string;
+  fields: FormField[];
+  submitAction: string;
+}
+
+export interface FormField {
+  name: string;
+  type: string;
+  required: boolean;
+}
+
+export interface NavigationAnalysis {
+  links: NavLink[];
+  dynamicRoutes: string[];
+}
+
+export interface NavLink {
+  text: string;
+  href: string;
+}
+
+export interface ScreenshotMetadata {
+  viewportName: string;
+  width: number;
+  height: number;
+  url: string;
+  base64?: string;
+}

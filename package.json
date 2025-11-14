@@ -4,15 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:clean": "rm -f .next/dev/lock && next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@monaco-editor/react": "^4.7.0",
     "@supabase/supabase-js": "^2.81.1",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.553.0",
     "next": "16.0.3",
+    "playwright": "^1.56.1",
     "react": "19.2.0",
     "react-dom": "19.2.0"
   },

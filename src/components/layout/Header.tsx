@@ -1,26 +1,47 @@
 'use client';
 
-import Link from 'next/link';
 import { Bot, Play, Plus } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
+import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
+import { ThemedButton } from '@/components/ui/ThemedButton';
 
 export function Header() {
+  const { currentTheme } = useTheme();
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header
+      className="sticky top-0 z-50 w-full backdrop-blur-md"
+      style={{
+        borderBottom: `1px solid ${currentTheme.colors.border}`,
+        background: `${currentTheme.colors.surface}cc`,
+      }}
+    >
       <div className="container flex h-16 items-center justify-between px-6">
-        <div className="flex items-center gap-2">
-          <Bot className="h-8 w-8 text-primary-600" />
-          <h1 className="text-xl font-bold text-neutral-900">AI Test Agent</h1>
+        <div className="flex items-center gap-3">
+          <div
+            className="p-2 rounded-lg"
+            style={{
+              background: `${currentTheme.colors.primary}20`,
+              borderColor: `${currentTheme.colors.primary}40`,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+            }}
+          >
+            <Bot className="h-6 w-6" style={{ color: currentTheme.colors.accent }} />
+          </div>
+          <h1 className="text-xl font-bold" style={{ color: currentTheme.colors.text.primary }}>
+            Pathfinder
+          </h1>
         </div>
 
         <div className="flex items-center gap-4">
-          <button className="flex items-center gap-2 rounded-lg bg-neutral-100 px-4 py-2 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-200">
-            <Plus className="h-4 w-4" />
+          <ThemeSwitcher />
+          <ThemedButton variant="secondary" size="sm" leftIcon={<Plus className="w-4 h-4" />}>
             New Test
-          </button>
-          <button className="flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700">
-            <Play className="h-4 w-4" />
+          </ThemedButton>
+          <ThemedButton variant="glow" size="sm" leftIcon={<Play className="w-4 h-4" />}>
             Run All
-          </button>
+          </ThemedButton>
         </div>
       </div>
     </header>

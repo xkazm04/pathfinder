@@ -13,8 +13,6 @@ Build a robust test execution engine that runs Playwright tests across multiple 
 
 ### 1. Test Runner Interface
 
-**Location:** `/app/runner/page.tsx`
-
 **UI Layout:**
 - Left sidebar: Test suite selector and configuration panel
 - Center: Real-time execution monitor
@@ -23,7 +21,7 @@ Build a robust test execution engine that runs Playwright tests across multiple 
 
 **Components Structure:**
 ```
-RunnerPage
+Runner
 ├── TestSuiteSelector
 ├── ViewportConfigurator
 ├── ExecutionMonitor (center stage)

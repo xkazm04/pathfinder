@@ -1,24 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Test Agent - Pathfinder
+
+An intelligent automated testing platform powered by AI, Playwright, and Next.js.
+
+## Tech Stack
+
+- **Next.js 16** (App Router with Turbopack)
+- **TypeScript** (Strict mode)
+- **Tailwind CSS 4** (Custom design system)
+- **Framer Motion** (Animations)
+- **Supabase** (Backend & Database)
+- **Lucide React** (Icons)
+- **Playwright** (Test execution - to be integrated)
+- **Gemini AI** (AI analysis - to be integrated)
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure Environment Variables
+
+Update `.env.local` with your credentials (already configured in your project):
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+### 3. Set Up Database
+
+Run the SQL schema from `supabase/schema.sql` in your Supabase SQL Editor to create all required tables.
+
+### 4. Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**Note**: Next.js automatically handles port conflicts. If port 3000 is in use, it will use the next available port (3001, 3002, etc.).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+If you encounter a lock file error:
+```bash
+npm run dev:clean
+```
+
+## Configuration
+
+### Turbopack Root
+
+The project is configured with an explicit Turbopack root in `next.config.ts` to handle monorepo scenarios and prevent workspace warnings.
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run dev:clean` - Clear lock files and start dev server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
 
 ## Learn More
 
