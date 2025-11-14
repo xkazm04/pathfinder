@@ -18,6 +18,14 @@ export async function uploadScreenshot(
   const fileName = `${metadata.testRunId}/${metadata.viewport}/${metadata.stepName}-${metadata.timestamp}.png`;
 
   try {
+    // Check if bucket exists first
+    const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+
+    if (bucketError || !buckets?.find(b => b.name === 'test-screenshots')) {
+      console.warn('Screenshot storage bucket not found. Screenshots will not be uploaded.');
+      return ''; // Return empty string instead of failing
+    }
+
     const { data, error } = await supabase.storage
       .from('test-screenshots')
       .upload(fileName, screenshot, {
@@ -27,7 +35,8 @@ export async function uploadScreenshot(
       });
 
     if (error) {
-      throw new Error(`Screenshot upload failed: ${error.message}`);
+      console.warn(`Screenshot upload failed: ${error.message}`);
+      return ''; // Return empty string instead of throwing
     }
 
     // Get public URL
@@ -37,8 +46,8 @@ export async function uploadScreenshot(
 
     return urlData.publicUrl;
   } catch (error) {
-    console.error('Failed to upload screenshot:', error);
-    throw error;
+    console.warn('Failed to upload screenshot:', error);
+    return ''; // Return empty string instead of throwing
   }
 }
 

@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ThemedCard, ThemedCardHeader, ThemedCardContent } from '@/components/ui/ThemedCard';
-import { Terminal, Network, AlertCircle, FileText, Copy } from 'lucide-react';
+import { Terminal, Network, AlertCircle, FileText, Copy, ChevronUp, ChevronDown } from 'lucide-react';
 import { ConsoleLog } from '@/lib/types';
 
 interface LiveLogsPanelProps {
@@ -17,6 +17,7 @@ export function LiveLogsPanel({ logs, networkLogs = [], errors = [] }: LiveLogsP
   const { currentTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<'console' | 'network' | 'errors'>('console');
   const [autoScroll, setAutoScroll] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,34 +59,77 @@ export function LiveLogsPanel({ logs, networkLogs = [], errors = [] }: LiveLogsP
   ];
 
   return (
-    <ThemedCard variant="bordered">
-      <ThemedCardHeader
-        title="Live Logs"
-        subtitle="Real-time execution logs"
-        icon={<FileText className="w-5 h-5" />}
-        action={
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setAutoScroll(!autoScroll)}
-              className="text-xs px-2 py-1 rounded"
-              style={{
-                backgroundColor: autoScroll ? currentTheme.colors.primary : currentTheme.colors.surface,
-                color: autoScroll ? '#fff' : currentTheme.colors.text.secondary,
-              }}
-            >
-              Auto-scroll
-            </button>
-            <button
-              onClick={copyLogs}
-              className="p-1 rounded"
-              style={{ color: currentTheme.colors.text.secondary }}
-            >
-              <Copy className="w-4 h-4" />
-            </button>
-          </div>
-        }
-      />
-      <ThemedCardContent>
+    <div
+      className="fixed bottom-0 left-0 right-0 z-50 transition-all"
+      style={{
+        backgroundColor: currentTheme.colors.background,
+        borderTopWidth: '2px',
+        borderTopStyle: 'solid',
+        borderTopColor: currentTheme.colors.border,
+      }}
+    >
+      {/* Header Bar - Always Visible */}
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="w-full flex items-center justify-between px-6 py-3 hover:opacity-80 transition-opacity"
+        style={{ backgroundColor: currentTheme.colors.surface }}
+      >
+        <div className="flex items-center gap-3">
+          <FileText className="w-5 h-5" style={{ color: currentTheme.colors.primary }} />
+          <h3 className="text-sm font-semibold" style={{ color: currentTheme.colors.text.primary }}>
+            Live Logs
+          </h3>
+          <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: `${currentTheme.colors.primary}20`, color: currentTheme.colors.primary }}>
+            {logs.length} logs
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {isExpanded && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAutoScroll(!autoScroll);
+                }}
+                className="text-xs px-2 py-1 rounded"
+                style={{
+                  backgroundColor: autoScroll ? currentTheme.colors.primary : currentTheme.colors.surface,
+                  color: autoScroll ? '#fff' : currentTheme.colors.text.secondary,
+                }}
+              >
+                Auto-scroll
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copyLogs();
+                }}
+                className="p-1 rounded"
+                style={{ color: currentTheme.colors.text.secondary }}
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+            </>
+          )}
+          {isExpanded ? (
+            <ChevronDown className="w-5 h-5" style={{ color: currentTheme.colors.text.secondary }} />
+          ) : (
+            <ChevronUp className="w-5 h-5" style={{ color: currentTheme.colors.text.secondary }} />
+          )}
+        </div>
+      </button>
+
+      {/* Expandable Content */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden"
+          >
+            <div className="px-6 pb-4">
         {/* Tabs */}
         <div className="flex gap-2 border-b mt-4" style={{ borderColor: currentTheme.colors.border }}>
           {tabs.map(tab => {
@@ -190,7 +234,10 @@ export function LiveLogsPanel({ logs, networkLogs = [], errors = [] }: LiveLogsP
             </div>
           )}
         </div>
-      </ThemedCardContent>
-    </ThemedCard>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

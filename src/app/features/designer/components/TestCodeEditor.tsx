@@ -127,6 +127,27 @@ export function TestCodeEditor({
               automaticLayout: true,
               tabSize: 2,
               wordWrap: 'on',
+              // Disable all linting and validation
+              'semanticHighlighting.enabled': false,
+              quickSuggestions: false,
+              parameterHints: { enabled: false },
+              suggestOnTriggerCharacters: false,
+              acceptSuggestionOnEnter: 'off',
+              tabCompletion: 'off',
+              wordBasedSuggestions: false,
+            }}
+            beforeMount={(monaco) => {
+              // Disable TypeScript diagnostics
+              monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+                noSemanticValidation: true,
+                noSyntaxValidation: true,
+                noSuggestionDiagnostics: true,
+              });
+              monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+                noSemanticValidation: true,
+                noSyntaxValidation: true,
+                noSuggestionDiagnostics: true,
+              });
             }}
           />
         </div>

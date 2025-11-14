@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { VIEWPORTS, PAGE_LOAD_TIMEOUT } from '@/lib/config';
 import { createContext, navigateToUrl, captureScreenshot, closeBrowser } from '@/lib/playwright/setup';
 import { ScreenshotMetadata } from '@/lib/types';
+import { uploadScreenshot, ScreenshotMetadata as StorageMetadata } from '@/lib/storage/screenshots';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60 seconds for serverless function
@@ -37,6 +38,8 @@ export async function POST(request: NextRequest) {
     }
 
     const screenshots: ScreenshotMetadata[] = [];
+    const timestamp = Date.now();
+    const sessionId = `designer-${timestamp}`;
 
     // Capture screenshots for each viewport
     for (const viewportKey of viewportsToCapture) {
@@ -55,7 +58,22 @@ export async function POST(request: NextRequest) {
         // Capture screenshot
         const screenshotBuffer = await captureScreenshot(page, { fullPage: true });
 
-        // Convert to base64
+        // Upload to Supabase storage
+        let screenshotUrl = '';
+        try {
+          const metadata: StorageMetadata = {
+            testRunId: sessionId,
+            testName: 'designer-preview',
+            stepName: viewportKey,
+            viewport: viewport.name,
+            timestamp,
+          };
+          screenshotUrl = await uploadScreenshot(screenshotBuffer, metadata);
+        } catch (uploadError) {
+          console.warn('Screenshot upload failed, using base64 fallback:', uploadError);
+        }
+
+        // Convert to base64 as fallback
         const base64 = screenshotBuffer.toString('base64');
 
         screenshots.push({
@@ -63,7 +81,8 @@ export async function POST(request: NextRequest) {
           width: viewport.width,
           height: viewport.height,
           url: url,
-          base64: base64,
+          base64: screenshotUrl || base64, // Use URL if available, otherwise base64
+          screenshotUrl: screenshotUrl || undefined,
         });
 
         // Cleanup

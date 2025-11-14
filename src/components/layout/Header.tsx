@@ -36,12 +36,6 @@ export function Header() {
 
         <div className="flex items-center gap-4">
           <ThemeSwitcher />
-          <ThemedButton variant="secondary" size="sm" leftIcon={<Plus className="w-4 h-4" />}>
-            New Test
-          </ThemedButton>
-          <ThemedButton variant="glow" size="sm" leftIcon={<Play className="w-4 h-4" />}>
-            Run All
-          </ThemedButton>
         </div>
       </div>
     </header>

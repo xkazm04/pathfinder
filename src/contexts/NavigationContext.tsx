@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-export type PageView = 'dashboard' | 'designer' | 'runner' | 'reports' | 'settings';
+export type PageView = 'dashboard' | 'designer' | 'runner' | 'reports';
 
 interface NavigationContextType {
   currentPage: PageView;

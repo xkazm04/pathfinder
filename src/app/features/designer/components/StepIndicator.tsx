@@ -24,20 +24,36 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between relative">
-        {/* Progress Line */}
+        {/* Base Line (subtle) */}
         <div
           className="absolute top-5 left-0 right-0 h-0.5 -z-10"
-          style={{ backgroundColor: `${currentTheme.colors.border}40` }}
-        >
-          <motion.div
-            className="h-full"
-            style={{
-              background: `linear-gradient(90deg, ${currentTheme.colors.primary}, ${currentTheme.colors.accent})`,
-            }}
-            initial={{ width: 0 }}
-            animate={{ width: `${(currentIndex / (steps.length - 1)) * 100}%` }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-          />
+          style={{ backgroundColor: `${currentTheme.colors.border}20` }}
+        />
+
+        {/* Connecting Lines Between Accomplished Steps */}
+        <div className="absolute top-5 left-0 right-0 h-0.5 -z-10 flex items-center justify-between">
+          {steps.map((step, index) => {
+            if (index === steps.length - 1) return null;
+
+            const isCompleted = index < currentIndex;
+            const nextIsCompleted = index + 1 < currentIndex;
+            const showLine = isCompleted && nextIsCompleted;
+
+            return (
+              <motion.div
+                key={`line-${step.id}`}
+                className="h-0.5"
+                style={{
+                  flex: 1,
+                  backgroundColor: showLine ? '#9ca3af' : 'transparent',
+                  marginLeft: index === 0 ? '0' : '0',
+                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: showLine ? 1 : 0 }}
+                transition={{ duration: 0.4 }}
+              />
+            );
+          })}
         </div>
 
         {/* Steps */}
@@ -65,10 +81,23 @@ export function StepIndicator({ steps, currentStep }: StepIndicatorProps) {
                     : 'none',
                 }}
                 initial={false}
-                animate={{
-                  scale: isCurrent ? 1.1 : 1,
+                animate={isCurrent ? {
+                  scale: [1, 1.1, 1],
+                  boxShadow: [
+                    `0 0 16px ${currentTheme.colors.primary}40`,
+                    `0 0 24px ${currentTheme.colors.primary}60`,
+                    `0 0 16px ${currentTheme.colors.primary}40`,
+                  ],
+                } : {
+                  scale: 1,
                 }}
-                transition={{ duration: 0.3 }}
+                transition={isCurrent ? {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                } : {
+                  duration: 0.3,
+                }}
               >
                 {isCompleted ? (
                   <Check className="w-5 h-5" style={{ color: '#ffffff' }} />

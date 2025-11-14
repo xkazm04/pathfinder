@@ -1,24 +1,11 @@
 'use client';
 
 import { useNavigation } from '@/contexts/NavigationContext';
-import { Dashboard } from '@/features/dashboard/Dashboard';
-import { Designer } from '@/features/designer/Designer';
-import { RealRunner } from '@/features/runner/RealRunner';
-import { Reports } from '@/features/reports/Reports';
+import { Dashboard } from '@/app/features/dashboard/Dashboard';
+import { Designer } from '@/app/features/designer/Designer';
+import { RealRunner } from '@/app/features/runner/RealRunner';
+import { Reports } from '@/app/features/reports/Reports';
 
-// Placeholder for Settings page
-function Settings() {
-  return (
-    <div className="p-8">
-      <h1 className="text-4xl font-bold mb-2" style={{ color: 'var(--theme-text-primary)' }}>
-        Settings
-      </h1>
-      <p className="text-lg" style={{ color: 'var(--theme-text-tertiary)' }}>
-        Application settings and configuration
-      </p>
-    </div>
-  );
-}
 
 export default function Home() {
   const { currentPage, reportId } = useNavigation();
@@ -33,8 +20,6 @@ export default function Home() {
       return <RealRunner />;
     case 'reports':
       return <Reports testRunId={reportId} />;
-    case 'settings':
-      return <Settings />;
     default:
       return <Dashboard />;
   }

@@ -3,8 +3,6 @@
 import { motion } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ThemedCard, ThemedCardHeader, ThemedCardContent } from '@/components/ui/ThemedCard';
-import { ThemedButton } from '@/components/ui/ThemedButton';
-import { VIEWPORTS } from '@/lib/config';
 import { Monitor, Tablet, Smartphone, CheckSquare, Square } from 'lucide-react';
 
 interface ViewportConfig {
@@ -30,16 +28,6 @@ export function ViewportConfigurator({ selectedViewports, onViewportsChange }: V
     onViewportsChange(updated);
   };
 
-  const selectAll = () => {
-    const updated = selectedViewports.map(v => ({ ...v, enabled: true }));
-    onViewportsChange(updated);
-  };
-
-  const deselectAll = () => {
-    const updated = selectedViewports.map(v => ({ ...v, enabled: false }));
-    onViewportsChange(updated);
-  };
-
   const getIcon = (name: string) => {
     if (name.includes('Desktop')) return Monitor;
     if (name.includes('iPad') || name.includes('Tablet')) return Tablet;
@@ -51,16 +39,6 @@ export function ViewportConfigurator({ selectedViewports, onViewportsChange }: V
       <ThemedCardHeader
         title="Viewport Configuration"
         subtitle={`${selectedViewports.filter(v => v.enabled).length} selected`}
-        action={
-          <div className="flex gap-2">
-            <ThemedButton variant="ghost" size="sm" onClick={selectAll}>
-              Select All
-            </ThemedButton>
-            <ThemedButton variant="ghost" size="sm" onClick={deselectAll}>
-              Deselect All
-            </ThemedButton>
-          </div>
-        }
       />
       <ThemedCardContent>
         <div className="mt-4 space-y-2">

@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, Wand2, Play, FileText, Settings, ChevronLeft } from 'lucide-react';
+import { Home, Wand2, Play, FileText, ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigation, PageView } from '@/contexts/NavigationContext';
 
@@ -9,7 +9,6 @@ const navigationItems = [
   { name: 'Test Designer', page: 'designer' as PageView, icon: Wand2 },
   { name: 'Test Runner', page: 'runner' as PageView, icon: Play },
   { name: 'Reports', page: 'reports' as PageView, icon: FileText },
-  { name: 'Settings', page: 'settings' as PageView, icon: Settings },
 ];
 
 export function Sidebar() {
@@ -41,7 +40,7 @@ export function Sidebar() {
                 }`}
                 title={isCollapsed ? item.name : undefined}
               >
-                <Icon className="h-5 w-5 flex-shrink-0" />
+                <Icon className="h-5 w-5 flex-0" />
                 {!isCollapsed && <span>{item.name}</span>}
               </button>
             );

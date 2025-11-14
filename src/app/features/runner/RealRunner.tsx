@@ -55,7 +55,23 @@ export function RealRunner() {
     }
 
     setExecutionState('running');
-    setConsoleLogs([]);
+    setConsoleLogs([
+      {
+        type: 'info',
+        message: `Starting test execution for suite: ${selectedSuite.name}`,
+        timestamp: new Date().toISOString(),
+      },
+      {
+        type: 'info',
+        message: `Target URL: ${selectedSuite.target_url}`,
+        timestamp: new Date().toISOString(),
+      },
+      {
+        type: 'info',
+        message: `Viewports: ${enabledViewports.map(v => v.name).join(', ')}`,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
     setProgress({
       current: 0,
       total: enabledViewports.length,
@@ -99,6 +115,57 @@ export function RealRunner() {
       const passed = result.results.filter((r: any) => r.status === 'pass').length;
       const failed = result.results.filter((r: any) => r.status === 'fail').length;
 
+      // Log each result with detailed information
+      result.results.forEach((r: any, index: number) => {
+        // Add viewport result summary
+        setConsoleLogs(prev => [
+          ...prev,
+          {
+            type: r.status === 'fail' ? 'error' : 'info',
+            message: `[Viewport ${index + 1}] ${r.viewport}: ${r.status.toUpperCase()} (${r.durationMs}ms)`,
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+
+        // Add console logs from Playwright
+        if (r.consoleLogs && r.consoleLogs.length > 0) {
+          r.consoleLogs.forEach((log: any) => {
+            setConsoleLogs(prev => [
+              ...prev,
+              {
+                type: log.type || 'log',
+                message: `  [${r.viewport}] ${log.message}`,
+                timestamp: log.timestamp || new Date().toISOString(),
+              },
+            ]);
+          });
+        }
+
+        // Add errors from Playwright
+        if (r.errors && r.errors.length > 0) {
+          r.errors.forEach((error: any) => {
+            setConsoleLogs(prev => [
+              ...prev,
+              {
+                type: 'error',
+                message: `  [${r.viewport}] ERROR: ${error.message}`,
+                timestamp: new Date().toISOString(),
+              },
+            ]);
+            if (error.stack) {
+              setConsoleLogs(prev => [
+                ...prev,
+                {
+                  type: 'error',
+                  message: `  ${error.stack.split('\n').slice(0, 3).join('\n  ')}`,
+                  timestamp: new Date().toISOString(),
+                },
+              ]);
+            }
+          });
+        }
+      });
+
       setProgress({
         current: result.results.length,
         total: result.results.length,
@@ -115,7 +182,7 @@ export function RealRunner() {
       setConsoleLogs(prev => [
         ...prev,
         {
-          type: 'info',
+          type: failed > 0 ? 'error' : 'info',
           message: `Test execution completed. ${passed} passed, ${failed} failed.`,
           timestamp: new Date().toISOString(),
         },
@@ -152,7 +219,7 @@ export function RealRunner() {
   const canStart = selectedSuite && viewports.some(v => v.enabled) && executionState === 'idle';
 
   return (
-    <div className="p-8">
+    <div className="p-8 pb-32">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <h1 className="text-4xl font-bold mb-2" style={{ color: currentTheme.colors.text.primary }}>
@@ -165,14 +232,13 @@ export function RealRunner() {
 
       {/* Main Layout */}
       <div className="grid grid-cols-12 gap-6">
-        {/* Left Sidebar */}
-        <div className="col-span-3 space-y-6">
-          <TestSuiteSelector selectedSuite={selectedSuite} onSelectSuite={setSelectedSuite} />
+        {/* Left Sidebar - Viewport Configuration */}
+        <div className="col-span-2">
           <ViewportConfigurator selectedViewports={viewports} onViewportsChange={setViewports} />
         </div>
 
         {/* Center - Execution Monitor */}
-        <div className="col-span-6 space-y-6">
+        <div className="col-span-7 space-y-6">
           {executionState === 'idle' && (
             <div className="h-full flex items-center justify-center">
               <div className="text-center space-y-4">
@@ -267,11 +333,14 @@ export function RealRunner() {
           )}
         </div>
 
-        {/* Right Sidebar - Logs */}
+        {/* Right Sidebar - Test Suite Selector */}
         <div className="col-span-3">
-          <LiveLogsPanel logs={consoleLogs} />
+          <TestSuiteSelector selectedSuite={selectedSuite} onSelectSuite={setSelectedSuite} />
         </div>
       </div>
+
+      {/* Bottom Panel - Live Logs */}
+      <LiveLogsPanel logs={consoleLogs} />
     </div>
   );
 }

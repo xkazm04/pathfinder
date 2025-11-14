@@ -181,4 +181,5 @@ export interface ScreenshotMetadata {
   height: number;
   url: string;
   base64?: string;
+  screenshotUrl?: string;
 }
