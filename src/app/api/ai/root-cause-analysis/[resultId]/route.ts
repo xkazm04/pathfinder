@@ -7,10 +7,10 @@ import { getRootCauseAnalysis } from '@/lib/supabase/rootCauseAnalysis';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { resultId: string } }
+  { params }: { params: Promise<{ resultId: string }> }
 ) {
   try {
-    const { resultId } = params;
+    const { resultId } = await params;
 
     if (!resultId) {
       return NextResponse.json(

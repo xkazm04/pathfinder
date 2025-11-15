@@ -214,6 +214,7 @@ export function Designer() {
           screenshots={screenshots}
           scenarios={scenarios}
           generatedCode={generatedCode}
+          targetUrl={targetUrl}
           onCodeChange={setGeneratedCode}
           onSave={handleSaveTests}
           onReset={resetWorkflow}

@@ -1,0 +1,357 @@
+You are an expert software engineer. Execute the following requirement immediately. Do not ask questions, do not wait for confirmation. Read the requirement carefully and implement all changes to the codebase as specified.
+
+REQUIREMENT TO EXECUTE NOW:
+
+# Mini Test Runner Animation Preview
+
+## Metadata
+- **Category**: functionality
+- **Effort**: Medium (2/3)
+- **Impact**: High (3/3)
+- **Scan Type**: delight_designer
+- **Generated**: 11/14/2025, 9:45:48 PM
+
+## Description
+After code generation, render a live miniature test runner that steps through the Playwright actions in real time, showing a thumbnail viewport, a progress bar, and subtle sound cues. The animation pulls data from the generated script and runs it in a sandboxed environment, updating UI elements as each step executes. Users can watch the test run before publishing, gaining instant feedback and confidence.
+
+## Reasoning
+Providing a real-time visual preview bridges the gap between code and behavior, reducing debugging time and fostering trust in the generated suite. It turns a static code block into an engaging experience, encouraging users to iterate faster. This added confidence directly impacts adoption and reduces support tickets.
+
+## Context
+
+**Note**: This section provides supporting architectural documentation and is NOT a hard requirement. Use it as guidance to understand existing code structure and maintain consistency.
+
+### Context: Designer
+
+**Description**: # Designer Feature Overview
+
+## 1. Overview
+
+The **Designer** feature is a wizard‑style UI that guides users through creating, previewing, and publishing automated test suites. It is tailored for QA engineers, front‑end developers, and product owners who want to generate Playwright test code without writing it manually.
+
+### What problem does it solve?
+- **Complex test authoring** – Writing Playwright scripts can be tedious and error‑prone. The Designer abstracts the process into logical steps.
+- **Lack of visual feedback** – Users often cannot see what the test will look like before committing. The wizard shows scenario and screenshot previews in real time.
+- **Reusability & collaboration** – The integration with Supabase allows tests to be stored, versioned, and shared across teams.
+- **Theming & accessibility** – Consistent UI styling and animations keep the interface intuitive and modern.
+
+### Who uses it?
+- QA engineers building end‑to‑end tests.
+- Front‑end developers prototyping UI flows.
+- Product owners who need quick test artifacts for demos.
+
+## 2. Architecture
+
+The Designer is built as a composable React application using functional components, hooks, and context. The architecture follows a clear separation of concerns:
+
+| Layer | Responsibility |
+|-------|----------------|
+| **UI Components** | Presentational elements (`ThemedCard`, `ThemedButton`, step components). |
+| **Wizard Controller** | `Designer.tsx` orchestrates the step flow and holds shared state. |
+| **State Management** | Uses React `useState`/`useReducer` inside `Designer` and a dedicated `ThemeContext` for global theming. |
+| **Code Generation** | `generateTestCode.ts` converts the wizard model into Playwright JavaScript/TypeScript. |
+| **Backend Integration** | `supabase.ts` provides a Supabase client; `testSuites.ts` contains CRUD operations for test suites. |
+| **Utilities** | `theme.ts` defines theme tokens; `animations.ts` contains reusable animation hooks (e.g., `useFade`). |
+
+### Key Patterns
+- **Wizard Pattern** – Each step component represents a stage of the test creation workflow.
+- **Context API** – `ThemeContext` provides theme information to all UI components.
+- **Separation of Concerns** – UI, business logic, data access, and utilities are isolated.
+- **Component‑Driven Development** – Step components are small, reusable, and testable.
+
+## 3. File Structure
+
+```
+src/
+├─ app/
+│  └─ features/
+│     └─ designer/
+│        ├─ Designer.tsx                 # Main wizard container & state
+│        ├─ components/
+│        │  ├─ StepSetup.tsx             # Collects initial test metadata
+│        │  ├─ StepAnalysis.tsx          # Builds test steps and actions
+│        │  ├─ StepReview.tsx            # Review summary of test flow
+│        │  ├─ StepComplete.tsx          # Confirmation & publish action
+│        │  ├─ StepIndicator.tsx         # Visual step progress bar
+│        │  ├─ ScenarioPreview.tsx      # Live preview of the test scenario
+│        │  ├─ ScreenshotPreview.tsx    # Screenshot thumbnails for steps
+│        │  └─ TestCodeEditor.tsx        # Editable code pane with generated Playwright script
+│        └─ ...
+├─ components/
+│  └─ ui/
+│     ├─ ThemedCard.tsx                 # Reusable card with theme support
+│     └─ ThemedButton.tsx                # Themed button component
+├─ contexts/
+│  └─ ThemeContext.tsx                 # React context for theming
+├─ lib/
+│  ├─ playwright/
+│  │  └─ generateTestCode.ts          # Generates Playwright test code from model
+│  ├─ supabase/
+│  │  ├─ supabase.ts                 # Supabase client initialization
+│  │  └─ testSuites.ts                # CRUD for test suites
+│  ├─ theme.ts                        # Theme token definitions (colors, spacing, etc.)
+│  └─ animations.ts                   # Animation hooks (e.g., fadeIn, slideIn)
+├─ types.ts                             # Shared TypeScript types and interfaces
+└─ ...
+```
+
+### How Files Relate
+- `Designer.tsx` imports all step components and manages the wizard state.
+- `StepIndicator.tsx` consumes the current step index from `Designer` and renders progress.
+- `ScenarioPreview`, `ScreenshotPreview`, and `TestCodeEditor` are nested inside relevant steps and display real‑time data from the wizard state.
+- `ThemedCard` and `ThemedButton` are used throughout the wizard for consistent styling.
+- `generateTestCode.ts` is invoked in `StepComplete` to produce the final Playwright script.
+- `testSuites.ts` is called from `Designer` (or a dedicated service) to persist the created test suite to Supabase.
+- `ThemeContext` is provided at the top level (likely in `App.tsx`) and consumed by `ThemedCard`, `ThemedButton`, and the wizard components.
+- `animations.ts` hooks are used in step components to animate entrance/exit transitions.
+
+---
+
+**Key Export Points**
+- `src/app/features/designer/Designer.tsx` – the entry point for the designer wizard.
+- `src/components/ui/ThemedCard.tsx` and `ThemedButton.tsx` – public UI components.
+- `src/lib/playwright/generateTestCode.ts` – utility for generating code.
+- `src/contexts/ThemeContext.tsx` – provides `ThemeProvider`.
+- `src/lib/supabase/testSuites.ts` – exposes `createTestSuite`, `fetchTestSuites`, etc.
+
+With this structure, developers can quickly locate the wizard logic, UI components, theming, and backend integration, facilitating both extension and maintenance of the Designer feature.",
+  "fileStructure": "src/
+├─ app/
+│  └─ features/
+│     └─ designer/
+│        ├─ Designer.tsx
+│        ├─ components/
+│        │  ├─ StepSetup.tsx
+│        │  ├─ StepAnalysis.tsx
+│        │  ├─ StepReview.tsx
+│        │  ├─ StepComplete.tsx
+│        │  ├─ StepIndicator.tsx
+│        │  ├─ ScenarioPreview.tsx
+│        │  ├─ ScreenshotPreview.tsx
+│        │  └─ TestCodeEditor.tsx
+├─ components/
+│  └─ ui/
+│     ├─ ThemedCard.tsx
+│     └─ ThemedButton.tsx
+├─ contexts/
+│  └─ ThemeContext.tsx
+├─ lib/
+│  ├─ playwright/
+│  │  └─ generateTestCode.ts
+│  ├─ supabase/
+│  │  ├─ supabase.ts
+│  │  └─ testSuites.ts
+│  ├─ theme.ts
+│  └─ animations.ts
+├─ types.ts
+└─ ...
+"
+}
+**Related Files**:
+- `src/app/features/designer/Designer.tsx`
+- `src/app/features/designer/components/StepAnalysis.tsx`
+- `src/app/features/designer/components/StepComplete.tsx`
+- `src/app/features/designer/components/StepIndicator.tsx`
+- `src/app/features/designer/components/StepReview.tsx`
+- `src/app/features/designer/components/StepSetup.tsx`
+- `src/components/ui/ThemedCard.tsx`
+- `src/contexts/ThemeContext.tsx`
+- `src/lib/playwright/generateTestCode.ts`
+- `src/lib/supabase/testSuites.ts`
+- `src/lib/types.ts`
+- `src/app/features/designer/components/ScenarioPreview.tsx`
+- `src/app/features/designer/components/ScreenshotPreview.tsx`
+- `src/app/features/designer/components/TestCodeEditor.tsx`
+- `src/components/ui/ThemedButton.tsx`
+- `src/lib/animations.ts`
+- `src/lib/supabase.ts`
+- `src/lib/theme.ts`
+
+**Post-Implementation**: After completing this requirement, evaluate if the context description or file paths need updates. Use the appropriate API/DB query to update the context if architectural changes were made.
+
+## Recommended Skills
+
+- **compact-ui-design**: Use `.claude/skills/compact-ui-design.md` for high-quality UI design references and patterns
+
+## Notes
+
+This requirement was generated from an AI-evaluated project idea. No specific goal is associated with this idea.
+
+IMPORTANT INSTRUCTIONS:
+- Analyze the requirement thoroughly
+- Identify all files that need to be modified or created
+- Implement all changes specified in the requirement
+- Follow the implementation steps precisely
+- Create/modify files as needed
+- Run any tests if specified
+- Ensure all changes are complete before finishing
+
+## Context Updates
+
+**CRITICAL**: If this requirement references a specific CONTEXT name or feature area, you MUST update the context documentation using the context update skill.
+
+To update a context:
+1. Invoke the `update-context` skill by running: `/skill update-context`
+2. The skill will guide you through:
+   - Identifying the correct context to update
+   - Analyzing the files you've changed
+   - Updating the context's file paths to include new/modified files
+   - Refreshing the context description to reflect your changes
+
+**When to use the context update skill:**
+- The requirement explicitly mentions a context name (e.g., "Update the Goals Management context")
+- You've created, modified, or deleted files within a feature area that has an existing context
+- Your changes significantly impact the architecture or capabilities of a feature
+
+**Important:** Always invoke the skill AFTER completing your implementation, as it needs to analyze your changes.
+
+## File Structure Guidelines (Next.js/React Projects)
+
+When creating new files in Next.js/React projects, follow this structure:
+
+**Feature-Specific Files** (use `app/features/<feature>` structure):
+- `app/features/<feature>/components/` - Feature-specific components and UI sections
+- `app/features/<feature>/lib/` - Feature-specific functions, utilities, and logical helpers
+- `app/features/<feature>/` - Main wrapper, index, or page file for the feature
+
+**Reusable UI Components** (use `app/components/ui` structure):
+- `app/components/ui/` - Shared, reusable UI elements used across multiple features
+
+**Theming and Styling**:
+- Before creating new UI components, examine existing components in the project
+- Match the color scheme, spacing, and visual patterns of existing components
+- Use consistent className patterns (Tailwind CSS classes)
+- Follow the app's design language (glassmorphism, gradients, shadows, etc.)
+- Pay attention to dark mode support if the app uses it
+
+Examples:
+- Feature component: `app/features/tasks/components/TaskCard.tsx`
+- Feature helper: `app/features/tasks/lib/taskValidation.ts`
+- Reusable UI: `app/components/ui/Button.tsx`
+
+## Test Coverage Preparation
+
+**IMPORTANT**: For all interactive UI components (buttons, inputs, forms, modals, etc.), add `data-testid` attributes to enable automated testing.
+
+**Guidelines**:
+- Add `data-testid` to all clickable elements (buttons, links, icons)
+- Use descriptive, kebab-case naming: `data-testid="submit-form-btn"`
+- Include component context in the ID: `data-testid="goal-delete-btn"`, `data-testid="project-settings-modal"`
+- Add to form inputs: `data-testid="email-input"`, `data-testid="password-input"`
+- Add to list items for testing selection: `data-testid="task-item-123"`
+
+**Examples**:
+```tsx
+<button onClick={handleSubmit} data-testid="create-goal-btn">
+  Create Goal
+</button>
+
+<input
+  type="text"
+  value={title}
+  onChange={handleChange}
+  data-testid="goal-title-input"
+/>
+
+<div className="modal" data-testid="delete-confirmation-modal">
+  ...
+</div>
+```
+
+## Implementation Logging
+
+**CRITICAL**: After completing the implementation, create a log entry in the SQLite database to track what was implemented.
+
+Database Path: `C:\Users\kazda\kiro\pathfinder\database\goals.db`
+Table: `implementation_log`
+Project ID: `108b16e3-019b-469c-a329-47138d60a21f`
+
+Execute this SQL command after implementation (replace placeholders with actual values):
+
+```sql
+INSERT INTO implementation_log (
+  id,
+  project_id,
+  requirement_name,
+  title,
+  overview,
+  tested,
+  created_at
+) VALUES (
+  '<generate-unique-uuid>',
+  '108b16e3-019b-469c-a329-47138d60a21f',
+  '<requirement-name>',
+  '<short-descriptive-title>',
+  '<detailed-overview-of-changes>',
+  0,
+  datetime('now')
+);
+```
+
+**Log Entry Guidelines**:
+- `id`: Generate a unique UUID (e.g., using `crypto.randomUUID()` or similar)
+- `project_id`: The project identifier (use: "108b16e3-019b-469c-a329-47138d60a21f")
+- `requirement_name`: Name of the requirement file being executed
+- `title`: Short, descriptive title (2-6 words, e.g., "Add User Authentication")
+- `overview`: Detailed paragraph describing:
+  - What was implemented
+  - Key files created or modified
+  - Major functionality added
+  - Any important patterns or decisions made
+- `tested`: Always set to 0 (false) initially
+- `created_at`: Use `datetime('now')` for current timestamp
+
+**Example Log Entry**:
+
+```sql
+INSERT INTO implementation_log (
+  id,
+  project_id,
+  requirement_name,
+  title,
+  overview,
+  tested,
+  created_at
+) VALUES (
+  '550e8400-e29b-41d4-a716-446655440000',
+  'project-abc-123',
+  'implement-user-login',
+  'User Login System',
+  'Implemented complete user authentication system with login form, JWT token management, and session persistence. Created LoginForm.tsx component, authService.ts for API calls, and useAuth hook for state management. Added protected route wrapper and login/logout functionality. Integrated with existing theme using glassmorphism design.',
+  0,
+  datetime('now')
+);
+```
+
+**How to Execute the SQL**:
+Use the sqlite3 command-line tool or Node.js better-sqlite3 library:
+
+```bash
+sqlite3 "C:\Users\kazda\kiro\pathfinder\database\goals.db" "INSERT INTO implementation_log (...) VALUES (...);"
+```
+
+Or in Node.js/TypeScript:
+```typescript
+import Database from 'better-sqlite3';
+const db = new Database('C:\Users\kazda\kiro\pathfinder\database\goals.db');
+db.prepare(`
+  INSERT INTO implementation_log (id, project_id, requirement_name, title, overview, tested, created_at)
+  VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+`).run(id, projectId, requirementName, title, overview, 0);
+db.close();
+```
+
+
+
+## Final Checklist
+
+Before finishing:
+- [ ] All code changes implemented
+- [ ] Test IDs added to interactive components
+- [ ] Context documentation updated (if applicable)
+- [ ] File structure follows guidelines
+- [ ] UI components match existing theme
+- [ ] Implementation log entry created in database
+- [ ] Tests run successfully (if specified)
+
+Begin implementation now.

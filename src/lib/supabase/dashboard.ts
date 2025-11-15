@@ -39,17 +39,23 @@ export interface IssuesByCategory {
 
 /**
  * Get dashboard statistics
+ * @param daysBack Number of days to look back from offset
+ * @param offset Number of days to offset the period (for trend calculation)
  */
-export async function getDashboardStats(daysBack: number = 30): Promise<DashboardStats> {
+export async function getDashboardStats(daysBack: number = 30, offset: number = 0): Promise<DashboardStats> {
   try {
     const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - daysBack);
+    cutoffDate.setDate(cutoffDate.getDate() - daysBack - offset);
+
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() - offset);
 
     // Get test runs in the period
     const { data: testRuns, error: runsError } = await supabase
       .from('test_runs')
       .select('id, status, created_at')
       .gte('created_at', cutoffDate.toISOString())
+      .lte('created_at', endDate.toISOString())
       .order('created_at', { ascending: false });
 
     if (runsError) throw runsError;
@@ -92,7 +98,8 @@ export async function getDashboardStats(daysBack: number = 30): Promise<Dashboar
     const { data: analyses, error: analysesError } = await supabase
       .from('ai_analyses')
       .select('findings')
-      .gte('created_at', cutoffDate.toISOString());
+      .gte('created_at', cutoffDate.toISOString())
+      .lte('created_at', endDate.toISOString());
 
     let totalIssues = 0;
     if (!analysesError && analyses) {

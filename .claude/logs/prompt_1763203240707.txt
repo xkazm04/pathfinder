@@ -1,0 +1,336 @@
+You are an expert software engineer. Execute the following requirement immediately. Do not ask questions, do not wait for confirmation. Read the requirement carefully and implement all changes to the codebase as specified.
+
+REQUIREMENT TO EXECUTE NOW:
+
+# AI-Driven Anomaly Detection for Test Runs
+
+## Metadata
+- **Category**: functionality
+- **Effort**: Medium (2/3)
+- **Impact**: High (3/3)
+- **Scan Type**: ai_integration_scout
+- **Generated**: 11/14/2025, 9:40:13 PM
+
+## Description
+Implement an LLM-based anomaly detection pipeline that analyzes recent test run logs and metrics, flags runs with abnormal failure patterns, and surfaces probable flaky tests or environment issues. The system extracts key entities from logs, computes embeddings, compares against a baseline distribution, and renders a warning badge on each RecentTestItem with a short explanation.
+
+## Reasoning
+QA engineers spend time triaging noisy test failures. Automated anomaly alerts reduce investigation time and surface hidden regressions, providing actionable insights without manual analysis.
+
+## Context
+
+**Note**: This section provides supporting architectural documentation and is NOT a hard requirement. Use it as guidance to understand existing code structure and maintain consistency.
+
+### Context: Dashboard
+
+**Description**: # Dashboard Feature Overview
+
+## 1. Overview
+
+The **Dashboard** feature provides a single‑page view that aggregates key metrics, recent test results, and quick actions for users of the testing platform. It solves the problem of scattered information by presenting:
+
+* **Quality trends** over time (e.g., pass/fail rate).
+* **Stat cards** that summarize core KPIs (total tests, success %, etc.).
+* A **list of recent test runs** with the ability to drill down.
+* **Quick actions** for launching new test cycles or accessing help.
+
+**Target users** include QA engineers, product managers, and developers who need instant visibility into the health of their test suites.
+
+## 2. Architecture
+
+The feature follows a **component‑driven** architecture built on React with TypeScript. It separates concerns into three main layers:
+
+1. **Presentation** – reusable UI components (`ThemedCard`, `ThemedButton`).
+2. **Feature components** – dashboard‑specific UI (`StatCard`, `QualityTrendsChart`, `QuickActionsCard`, `RecentTestItem`, `TestRunsList`).
+3. **Infrastructure** – data access (`supabase/dashboard.ts`), context providers (`ThemeContext`, `NavigationContext`), and utilities (`theme.ts`, `animations.ts`).
+
+### Key Patterns
+* **React Context API** – `ThemeContext` supplies color palette and theme toggling, while `NavigationContext` centralises routing logic.
+* **Custom hooks** – The dashboard components consume `useDashboardData()` (defined inside `dashboard.ts`) which wraps Supabase queries and memoises results.
+* **Data‑first approach** – Mock data (`mockData.ts`) is used during development and tests; real data is fetched via Supabase in production.
+* **Composition over inheritance** – UI components are lightweight and accept `className`/`style` props for styling, enabling high reusability.
+* **Animations** – `lib/animations.ts` exposes helpers for subtle entrance animations that are applied to cards and list items.
+
+## 3. File Structure
+
+### Main Feature Files
+| File | Purpose |
+|------|---------|
+| `Dashboard.tsx` | Entry point for the Dashboard page; orchestrates data fetching, renders layout, and wraps content with context providers.
+| `components/StatCard.tsx` | Displays a single KPI (title, value, icon) inside a themed card.
+| `components/QualityTrendsChart.tsx` | Renders a line/bar chart (using a charting library) that visualises pass/fail trends over time.
+| `components/QuickActionsCard.tsx` | Presents a set of buttons for common actions (e.g., “Run New Test”).
+| `components/RecentTestItem.tsx` | A row component used by `TestRunsList` to show individual test run details.
+| `components/TestRunsList.tsx` | Fetches and displays a paginated list of recent test runs, leveraging `RecentTestItem`.
+| `components/ui/ThemedCard.tsx` | A styled card that adapts to the current theme.
+| `components/ui/ThemedButton.tsx` | A button that respects theme colors and size variations.
+
+### Context & State
+| File | Purpose |
+|------|---------|
+| `contexts/ThemeContext.tsx` | Provides theme state and toggling logic; exports `ThemeProvider` and `useTheme` hook.
+| `contexts/NavigationContext.tsx` | Centralises navigation helpers (e.g., `navigateTo`) and current route info.
+
+### Supabase Integration
+| File | Purpose |
+|------|---------|
+| `lib/supabase.ts` | Initializes and exports the Supabase client instance.
+| `lib/supabase/dashboard.ts` | Encapsulates all dashboard‑related queries (e.g., `fetchQualityMetrics`, `fetchRecentRuns`).
+
+### Utilities
+| File | Purpose |
+|------|---------|
+| `lib/theme.ts` | Defines theme tokens (colors, spacing, typography) used by UI components.
+| `lib/animations.ts` | Exposes animation helpers (e.g., `fadeIn`, `slideIn`) that can be used in components.
+
+### Mock Data
+| File | Purpose |
+|------|---------|
+| `app/features/dashboard/lib/mockData.ts` | Provides sample data structures for unit/integration tests and for running the app offline.
+
+### File Relationship Diagram
+```
+src/
+├─ app/
+│  └─ features/
+│     └─ dashboard/
+│        ├─ Dashboard.tsx              # Page entry point
+│        ├─ components/
+│        │  ├─ StatCard.tsx
+│        │  ├─ QualityTrendsChart.tsx
+│        │  ├─ QuickActionsCard.tsx
+│        │  ├─ RecentTestItem.tsx
+│        │  ├─ TestRunsList.tsx
+│        │  └─ ui/
+│        │     ├─ ThemedCard.tsx
+│        │     └─ ThemedButton.tsx
+│        └─ lib/
+│           └─ mockData.ts
+├─ components/
+│  └─ ui/
+│     ├─ ThemedCard.tsx
+│     └─ ThemedButton.tsx
+├─ contexts/
+│  ├─ ThemeContext.tsx
+│  └─ NavigationContext.tsx
+├─ lib/
+│  ├─ supabase.ts
+│  ├─ supabase/dashboard.ts
+│  ├─ theme.ts
+│  └─ animations.ts
+└─ ...
+```
+
+### Entry Points & Exports
+* **`src/app/features/dashboard/Dashboard.tsx`** is the primary route component rendered by the app router.
+* **`ThemeContext`** and **`NavigationContext`** are exported as hooks (`useTheme`, `useNavigation`) for use across the app.
+* **`supabase/dashboard.ts`** exports functions like `getQualityTrends`, `getRecentRuns` which are consumed by the dashboard components.
+
+---
+
+By following this structure, developers can quickly understand how data flows from Supabase to UI, how theming is applied, and how the dashboard components are composed.
+**Related Files**:
+- `src/app/features/dashboard/Dashboard.tsx`
+- `src/app/features/dashboard/components/QualityTrendsChart.tsx`
+- `src/app/features/dashboard/components/QuickActionsCard.tsx`
+- `src/app/features/dashboard/components/RecentTestItem.tsx`
+- `src/app/features/dashboard/components/StatCard.tsx`
+- `src/app/features/dashboard/components/TestRunsList.tsx`
+- `src/components/ui/ThemedButton.tsx`
+- `src/components/ui/ThemedCard.tsx`
+- `src/contexts/ThemeContext.tsx`
+- `src/lib/supabase/dashboard.ts`
+- `src/app/features/dashboard/lib/mockData.ts`
+- `src/contexts/NavigationContext.tsx`
+- `src/lib/animations.ts`
+- `src/lib/theme.ts`
+- `src/lib/supabase.ts`
+
+**Post-Implementation**: After completing this requirement, evaluate if the context description or file paths need updates. Use the appropriate API/DB query to update the context if architectural changes were made.
+
+## Recommended Skills
+
+Use Claude Code skills as appropriate for implementation guidance. Check `.claude/skills/` directory for available skills.
+
+## Notes
+
+This requirement was generated from an AI-evaluated project idea. No specific goal is associated with this idea.
+
+IMPORTANT INSTRUCTIONS:
+- Analyze the requirement thoroughly
+- Identify all files that need to be modified or created
+- Implement all changes specified in the requirement
+- Follow the implementation steps precisely
+- Create/modify files as needed
+- Run any tests if specified
+- Ensure all changes are complete before finishing
+
+## Context Updates
+
+**CRITICAL**: If this requirement references a specific CONTEXT name or feature area, you MUST update the context documentation using the context update skill.
+
+To update a context:
+1. Invoke the `update-context` skill by running: `/skill update-context`
+2. The skill will guide you through:
+   - Identifying the correct context to update
+   - Analyzing the files you've changed
+   - Updating the context's file paths to include new/modified files
+   - Refreshing the context description to reflect your changes
+
+**When to use the context update skill:**
+- The requirement explicitly mentions a context name (e.g., "Update the Goals Management context")
+- You've created, modified, or deleted files within a feature area that has an existing context
+- Your changes significantly impact the architecture or capabilities of a feature
+
+**Important:** Always invoke the skill AFTER completing your implementation, as it needs to analyze your changes.
+
+## File Structure Guidelines (Next.js/React Projects)
+
+When creating new files in Next.js/React projects, follow this structure:
+
+**Feature-Specific Files** (use `app/features/<feature>` structure):
+- `app/features/<feature>/components/` - Feature-specific components and UI sections
+- `app/features/<feature>/lib/` - Feature-specific functions, utilities, and logical helpers
+- `app/features/<feature>/` - Main wrapper, index, or page file for the feature
+
+**Reusable UI Components** (use `app/components/ui` structure):
+- `app/components/ui/` - Shared, reusable UI elements used across multiple features
+
+**Theming and Styling**:
+- Before creating new UI components, examine existing components in the project
+- Match the color scheme, spacing, and visual patterns of existing components
+- Use consistent className patterns (Tailwind CSS classes)
+- Follow the app's design language (glassmorphism, gradients, shadows, etc.)
+- Pay attention to dark mode support if the app uses it
+
+Examples:
+- Feature component: `app/features/tasks/components/TaskCard.tsx`
+- Feature helper: `app/features/tasks/lib/taskValidation.ts`
+- Reusable UI: `app/components/ui/Button.tsx`
+
+## Test Coverage Preparation
+
+**IMPORTANT**: For all interactive UI components (buttons, inputs, forms, modals, etc.), add `data-testid` attributes to enable automated testing.
+
+**Guidelines**:
+- Add `data-testid` to all clickable elements (buttons, links, icons)
+- Use descriptive, kebab-case naming: `data-testid="submit-form-btn"`
+- Include component context in the ID: `data-testid="goal-delete-btn"`, `data-testid="project-settings-modal"`
+- Add to form inputs: `data-testid="email-input"`, `data-testid="password-input"`
+- Add to list items for testing selection: `data-testid="task-item-123"`
+
+**Examples**:
+```tsx
+<button onClick={handleSubmit} data-testid="create-goal-btn">
+  Create Goal
+</button>
+
+<input
+  type="text"
+  value={title}
+  onChange={handleChange}
+  data-testid="goal-title-input"
+/>
+
+<div className="modal" data-testid="delete-confirmation-modal">
+  ...
+</div>
+```
+
+## Implementation Logging
+
+**CRITICAL**: After completing the implementation, create a log entry in the SQLite database to track what was implemented.
+
+Database Path: `C:\Users\kazda\kiro\pathfinder\database\goals.db`
+Table: `implementation_log`
+Project ID: `108b16e3-019b-469c-a329-47138d60a21f`
+
+Execute this SQL command after implementation (replace placeholders with actual values):
+
+```sql
+INSERT INTO implementation_log (
+  id,
+  project_id,
+  requirement_name,
+  title,
+  overview,
+  tested,
+  created_at
+) VALUES (
+  '<generate-unique-uuid>',
+  '108b16e3-019b-469c-a329-47138d60a21f',
+  '<requirement-name>',
+  '<short-descriptive-title>',
+  '<detailed-overview-of-changes>',
+  0,
+  datetime('now')
+);
+```
+
+**Log Entry Guidelines**:
+- `id`: Generate a unique UUID (e.g., using `crypto.randomUUID()` or similar)
+- `project_id`: The project identifier (use: "108b16e3-019b-469c-a329-47138d60a21f")
+- `requirement_name`: Name of the requirement file being executed
+- `title`: Short, descriptive title (2-6 words, e.g., "Add User Authentication")
+- `overview`: Detailed paragraph describing:
+  - What was implemented
+  - Key files created or modified
+  - Major functionality added
+  - Any important patterns or decisions made
+- `tested`: Always set to 0 (false) initially
+- `created_at`: Use `datetime('now')` for current timestamp
+
+**Example Log Entry**:
+
+```sql
+INSERT INTO implementation_log (
+  id,
+  project_id,
+  requirement_name,
+  title,
+  overview,
+  tested,
+  created_at
+) VALUES (
+  '550e8400-e29b-41d4-a716-446655440000',
+  'project-abc-123',
+  'implement-user-login',
+  'User Login System',
+  'Implemented complete user authentication system with login form, JWT token management, and session persistence. Created LoginForm.tsx component, authService.ts for API calls, and useAuth hook for state management. Added protected route wrapper and login/logout functionality. Integrated with existing theme using glassmorphism design.',
+  0,
+  datetime('now')
+);
+```
+
+**How to Execute the SQL**:
+Use the sqlite3 command-line tool or Node.js better-sqlite3 library:
+
+```bash
+sqlite3 "C:\Users\kazda\kiro\pathfinder\database\goals.db" "INSERT INTO implementation_log (...) VALUES (...);"
+```
+
+Or in Node.js/TypeScript:
+```typescript
+import Database from 'better-sqlite3';
+const db = new Database('C:\Users\kazda\kiro\pathfinder\database\goals.db');
+db.prepare(`
+  INSERT INTO implementation_log (id, project_id, requirement_name, title, overview, tested, created_at)
+  VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+`).run(id, projectId, requirementName, title, overview, 0);
+db.close();
+```
+
+
+
+## Final Checklist
+
+Before finishing:
+- [ ] All code changes implemented
+- [ ] Test IDs added to interactive components
+- [ ] Context documentation updated (if applicable)
+- [ ] File structure follows guidelines
+- [ ] UI components match existing theme
+- [ ] Implementation log entry created in database
+- [ ] Tests run successfully (if specified)
+
+Begin implementation now.

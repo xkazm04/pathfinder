@@ -10,7 +10,9 @@
       "Bash(nul)",
       "Bash(powershell -Command \"Stop-Process -Id 44096 -Force\")",
       "Bash(powershell -Command \"Stop-Process -Id 43616 -Force\")",
-      "Bash(del .nextdevlock 2)"
+      "Bash(del .nextdevlock 2)",
+      "Bash(npm run dev:clean:*)",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []

@@ -9,6 +9,16 @@ export type HealthGlowStatus = 'excellent' | 'good' | 'poor' | 'none';
 // Page view type
 export type PageView = 'dashboard' | 'designer' | 'runner' | 'reports' | 'nl-test' | 'flow-builder';
 
+// Project type
+export interface Project {
+  id: string;
+  name: string;
+  repo?: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 // Test progress types
 export interface TestStep {
   order: number;
@@ -38,6 +48,10 @@ interface AppState {
   currentPage: PageView;
   reportId?: string;
 
+  // Project state
+  currentProjectId: string | null;
+  projects: Project[];
+
   // NL Test state
   testDescription: string;
   testTargetUrl: string;
@@ -57,6 +71,9 @@ interface AppState {
 
   setCurrentPage: (page: PageView) => void;
   setReportId: (id?: string) => void;
+
+  setCurrentProjectId: (id: string | null) => void;
+  setProjects: (projects: Project[]) => void;
 
   setTestDescription: (description: string) => void;
   setTestTargetUrl: (url: string) => void;
@@ -99,6 +116,10 @@ export const useAppStore = create<AppState>()(
         currentPage: 'dashboard',
         reportId: undefined,
 
+        // Initial project state
+        currentProjectId: null,
+        projects: [],
+
         // Initial NL test state
         testDescription: '',
         testTargetUrl: '',
@@ -128,6 +149,10 @@ export const useAppStore = create<AppState>()(
         setCurrentPage: (page: PageView) => set({ currentPage: page }),
         setReportId: (id?: string) => set({ reportId: id }),
 
+        // Project actions
+        setCurrentProjectId: (id: string | null) => set({ currentProjectId: id }),
+        setProjects: (projects: Project[]) => set({ projects }),
+
         // NL Test actions
         setTestDescription: (description: string) => set({ testDescription: description }),
         setTestTargetUrl: (url: string) => set({ testTargetUrl: url }),
@@ -156,10 +181,11 @@ export const useAppStore = create<AppState>()(
       {
         name: 'pathfinder-app-storage',
         partialize: (state) => ({
-          // Only persist theme and navigation state
+          // Only persist theme, navigation, and project state
           themeId: state.themeId,
           currentPage: state.currentPage,
           healthGlow: state.healthGlow,
+          currentProjectId: state.currentProjectId,
         }),
       }
     ),
@@ -211,5 +237,14 @@ export const useTestState = () => useAppStore(
     setAnalysisError: state.setAnalysisError,
     setGenerationError: state.setGenerationError,
     resetTestState: state.resetTestState,
+  }))
+);
+
+export const useProjects = () => useAppStore(
+  useShallow((state) => ({
+    currentProjectId: state.currentProjectId,
+    projects: state.projects,
+    setCurrentProjectId: state.setCurrentProjectId,
+    setProjects: state.setProjects,
   }))
 );
