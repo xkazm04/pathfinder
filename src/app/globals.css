@@ -297,3 +297,37 @@ html {
   z-index: -1;
   transition: opacity 0.8s ease-in-out;
 }
+
+/* ===== GLOBAL SCROLLBAR STYLES ===== */
+/* Apply consistent scrollbar styling to ALL elements by default */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #d0e41d #00102a;
+  }
+
+  *::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #00102a;
+    border-radius: 1px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: #f7ffac;
+    border-radius: 1px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: #00167a;
+  }
+
+  /* Specific styling for html and body */
+  html, body {
+    scrollbar-width: thin;
+    scrollbar-color: #f7ffac #00102a;
+  }
+}

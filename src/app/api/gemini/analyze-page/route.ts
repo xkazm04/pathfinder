@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { analyzePageForTests } from '@/lib/gemini';
+import { analyzePageForTests } from '@/lib/llm/gemini';
 import { ScreenshotMetadata, CodebaseAnalysis } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';

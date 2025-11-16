@@ -1,4 +1,4 @@
-import { generateCompletion, parseAIJsonResponse } from '../ai-client';
+import { generateCompletion, parseAIJsonResponse } from '../llm/ai-client';
 
 export interface IntentAnalysis {
   isValid: boolean;

@@ -5,9 +5,12 @@ import { useFlowBuilder } from '../lib/useFlowBuilder';
 import { StepPalette } from './StepPalette';
 import { FlowCanvas } from './FlowCanvas';
 import { StepEditor } from './StepEditor';
+import { NLDescriptionPanel } from './NLDescriptionPanel';
+import { AIAssistantPanel } from './AIAssistantPanel';
 import { ThemedCard, ThemedCardHeader, ThemedCardContent } from '@/components/ui/ThemedCard';
 import { Badge } from '@/components/ui/Badge';
-import { PaletteItem } from '../lib/flowTypes';
+import { PaletteItem, FlowStep } from '../lib/flowTypes';
+import { flowStepsToNaturalLanguage, naturalLanguageToFlowSteps } from '../lib/flowSync';
 import {
   Play,
   Save,
@@ -35,6 +38,10 @@ export function FlowBuilder({ onSave, onExport, onGenerate }: FlowBuilderProps) 
   const [showPreview, setShowPreview] = useState(false);
   const [previewMode, setPreviewMode] = useState<'nl' | 'code'>('nl');
 
+  // NL Description state
+  const [nlDescription, setNLDescription] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
+
   const handleAddStep = (item: PaletteItem, order: number) => {
     const stepId = flowBuilder.addStep(item.type, {
       ...item.defaultConfig,
@@ -60,6 +67,54 @@ export function FlowBuilder({ onSave, onExport, onGenerate }: FlowBuilderProps) 
   const handleGenerateNL = () => {
     const nl = flowToNaturalLanguage(flowBuilder.flow);
     onGenerate?.(nl);
+  };
+
+  // Sync handlers for NL Description
+  const handleSyncFromSteps = () => {
+    setIsSyncing(true);
+    try {
+      const nl = flowStepsToNaturalLanguage(flowBuilder.flow);
+      setNLDescription(nl);
+    } catch (error) {
+      console.error('Failed to sync from steps:', error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSyncToSteps = () => {
+    setIsSyncing(true);
+    try {
+      const { steps, targetUrl, testName } = naturalLanguageToFlowSteps(nlDescription);
+
+      // Update flow metadata if available
+      if (targetUrl && !flowBuilder.flow.targetUrl) {
+        flowBuilder.updateMetadata({ targetUrl });
+      }
+      if (testName && testName !== 'Untitled Test' && !flowBuilder.flow.name) {
+        flowBuilder.updateMetadata({ name: testName });
+      }
+
+      // Add parsed steps
+      steps.forEach((step) => {
+        flowBuilder.addStep(step.type, step.config);
+      });
+    } catch (error) {
+      console.error('Failed to sync to steps:', error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // AI Assistant handler
+  const handleApplyAISteps = (steps: FlowStep[]) => {
+    // Clear existing steps
+    flowBuilder.clearFlow();
+
+    // Add AI-generated steps
+    steps.forEach((step) => {
+      flowBuilder.addStep(step.type, step.config);
+    });
   };
 
   const naturalLanguage = flowToNaturalLanguage(flowBuilder.flow);
@@ -385,8 +440,9 @@ export function FlowBuilder({ onSave, onExport, onGenerate }: FlowBuilderProps) 
         </AnimatePresence>
       </div>
 
-      {/* Right Sidebar - Step Editor */}
-      <div className="lg:col-span-1">
+      {/* Right Sidebar - Step Editor, NL Description, AI Assistant */}
+      <div className="lg:col-span-1 space-y-6">
+        {/* Step Editor */}
         {flowBuilder.selectedStep ? (
           <StepEditor
             step={flowBuilder.selectedStep}
@@ -425,6 +481,23 @@ export function FlowBuilder({ onSave, onExport, onGenerate }: FlowBuilderProps) 
             </ThemedCardContent>
           </ThemedCard>
         )}
+
+        {/* NL Description Panel */}
+        <NLDescriptionPanel
+          steps={flowBuilder.flow.steps}
+          nlDescription={nlDescription}
+          onNLDescriptionChange={setNLDescription}
+          onSyncFromSteps={handleSyncFromSteps}
+          onSyncToSteps={handleSyncToSteps}
+          isSyncing={isSyncing}
+        />
+
+        {/* AI Assistant Panel */}
+        <AIAssistantPanel
+          targetUrl={flowBuilder.flow.targetUrl || ''}
+          description={flowBuilder.flow.description}
+          onApplySteps={handleApplyAISteps}
+        />
       </div>
     </div>
   );

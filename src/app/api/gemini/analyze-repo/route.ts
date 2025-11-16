@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ANALYZE_REPO_STRUCTURE_PROMPT, SUGGEST_NEXT_TEST_PROMPT } from '@/prompts/test-recommendations';
 import { supabase } from '@/lib/supabase';
-import { generateCompletion, parseAIJsonResponse } from '@/lib/ai-client';
+import { generateCompletion, parseAIJsonResponse } from '@/lib/llm/ai-client';
 
 export const maxDuration = 60;
 

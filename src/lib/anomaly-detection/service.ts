@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { supabase } from '../supabase';
-import { generateCompletion, parseAIJsonResponse, getGeminiModel } from '../ai-client';
+import { generateCompletion, parseAIJsonResponse, getGeminiModel } from '../llm/ai-client';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 

@@ -1,4 +1,4 @@
-import { TestScenario, CodebaseAnalysis, ScreenshotMetadata } from './types';
+import { TestScenario, CodebaseAnalysis, ScreenshotMetadata } from '../types';
 import { generateCompletionWithImages, parseAIJsonResponse } from './ai-client';
 
 /**

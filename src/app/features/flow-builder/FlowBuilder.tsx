@@ -1,7 +1,7 @@
 'use client';
 
-import { TestBuilder } from '@/app/features/test-builder/TestBuilder';
+import { FlowBuilder as FlowBuilderComponent } from './components/FlowBuilder';
 
 export function FlowBuilder() {
-  return <TestBuilder />;
+  return <FlowBuilderComponent />;
 }

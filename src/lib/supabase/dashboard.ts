@@ -58,13 +58,23 @@ export async function getDashboardStats(daysBack: number = 30, offset: number = 
       throw new Error('No data returned from get_dashboard_stats');
     }
 
+    // Type assertion for RPC response
+    const statsData = data as {
+      total_tests: number;
+      pass_rate: number;
+      total_issues: number;
+      coverage: number;
+      recent_test_runs: number;
+      avg_quality_score: number;
+    };
+
     return {
-      totalTests: Number(data.total_tests) || 0,
-      passRate: Number(data.pass_rate) || 0,
-      totalIssues: Number(data.total_issues) || 0,
-      coverage: Number(data.coverage) || 0,
-      recentTestRuns: Number(data.recent_test_runs) || 0,
-      avgQualityScore: Number(data.avg_quality_score) || 0,
+      totalTests: Number(statsData.total_tests) || 0,
+      passRate: Number(statsData.pass_rate) || 0,
+      totalIssues: Number(statsData.total_issues) || 0,
+      coverage: Number(statsData.coverage) || 0,
+      recentTestRuns: Number(statsData.recent_test_runs) || 0,
+      avgQualityScore: Number(statsData.avg_quality_score) || 0,
     };
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);

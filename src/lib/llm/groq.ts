@@ -1,9 +1,25 @@
 import Groq from 'groq-sdk';
 
-// Initialize Groq client
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY || '',
-});
+// Lazy initialization - only create client when needed (server-side only)
+let groq: Groq | null = null;
+
+function getGroqClient(): Groq {
+  if (!groq) {
+    // Check if we're in a server environment
+    if (typeof window !== 'undefined') {
+      throw new Error('Groq client cannot be used in browser environment');
+    }
+
+    if (!process.env.GROQ_API_KEY) {
+      throw new Error('GROQ_API_KEY is not configured');
+    }
+
+    groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    });
+  }
+  return groq;
+}
 
 // Model configuration
 const GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
@@ -38,9 +54,7 @@ export async function generateGroqCompletion(
     systemPrompt?: string;
   }
 ): Promise<string> {
-  if (!process.env.GROQ_API_KEY) {
-    throw new Error('GROQ_API_KEY is not configured');
-  }
+  const client = getGroqClient();
 
   await waitForRateLimit();
 
@@ -59,7 +73,7 @@ export async function generateGroqCompletion(
       content: prompt,
     });
 
-    const completion = await groq.chat.completions.create({
+    const completion = await client.chat.completions.create({
       messages,
       model: GROQ_MODEL,
       temperature: options?.temperature ?? 0.7,
@@ -126,7 +140,12 @@ export function parseGroqJsonResponse<T>(text: string): T {
 
 /**
  * Check if Groq client is configured
+ * Safe to call from both client and server
  */
 export function isGroqConfigured(): boolean {
+  // Return false if in browser environment
+  if (typeof window !== 'undefined') {
+    return false;
+  }
   return Boolean(process.env.GROQ_API_KEY);
 }

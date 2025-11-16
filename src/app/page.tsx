@@ -1,36 +1,11 @@
 'use client';
 
-import { lazy, Suspense } from 'react';
 import { useNavigation, useTheme } from '@/lib/stores/appStore';
 import { Dashboard } from '@/app/features/dashboard/Dashboard';
 import { Designer } from '@/app/features/designer/Designer';
 import { RealRunner } from '@/app/features/runner/RealRunner';
 import { Reports } from '@/app/features/reports/Reports';
-import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-
-// Lazy load heavy feature pages for better performance
-const NLTest = lazy(() =>
-  import('@/app/features/nl-test/NLTest').then(mod => ({ default: mod.NLTest }))
-);
-const FlowBuilder = lazy(() =>
-  import('@/app/features/flow-builder/FlowBuilder').then(mod => ({ default: mod.FlowBuilder }))
-);
-
-// Loading fallback for lazy-loaded components
-function LazyLoadFallback() {
-  const { currentTheme } = useTheme();
-
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <LoadingSpinner size="lg" />
-        <p className="mt-4 text-sm" style={{ color: currentTheme.colors.text.secondary }}>
-          Loading...
-        </p>
-      </div>
-    </div>
-  );
-}
+import { FlowBuilder } from './features/flow-builder';
 
 /**
  * Get theme-specific mask overlay color
@@ -67,18 +42,9 @@ export default function Home() {
     case 'reports':
       content = <Reports testRunId={reportId} />;
       break;
-    case 'nl-test':
+    case 'builder':
       content = (
-        <Suspense fallback={<LazyLoadFallback />}>
-          <NLTest />
-        </Suspense>
-      );
-      break;
-    case 'flow-builder':
-      content = (
-        <Suspense fallback={<LazyLoadFallback />}>
           <FlowBuilder />
-        </Suspense>
       );
       break;
     default:

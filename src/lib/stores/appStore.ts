@@ -7,7 +7,7 @@ import { ThemeVariant, Theme, themes } from '@/lib/theme';
 export type HealthGlowStatus = 'excellent' | 'good' | 'poor' | 'none';
 
 // Page view type
-export type PageView = 'dashboard' | 'designer' | 'runner' | 'reports' | 'nl-test' | 'flow-builder';
+export type PageView = 'dashboard' | 'designer' | 'runner' | 'reports' | 'builder' | 'test-builder';
 
 // Project type
 export interface Project {

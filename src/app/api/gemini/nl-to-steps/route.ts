@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { NL_TO_STEPS_PROMPT, EXTRACT_URL_PROMPT } from '@/prompts/nl-to-steps';
-import { generateCompletion, parseAIJsonResponse } from '@/lib/ai-client';
+import { generateCompletion, parseAIJsonResponse } from '@/lib/llm/ai-client';
 
 export const maxDuration = 30;
 

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { STEPS_TO_NL_PROMPT } from '@/prompts/steps-to-nl';
-import { generateCompletion } from '@/lib/ai-client';
+import { generateCompletion } from '@/lib/llm/ai-client';
 
 export const maxDuration = 30;
 

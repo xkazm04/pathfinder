@@ -2,8 +2,24 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { generateGroqCompletion, isGroqConfigured } from './groq';
 import { jsonrepair } from 'jsonrepair';
 
-// Initialize Gemini client
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// Lazy initialization - only create client when needed (server-side only)
+let genAI: GoogleGenerativeAI | null = null;
+
+function getGeminiClient(): GoogleGenerativeAI {
+  if (!genAI) {
+    // Check if we're in a server environment
+    if (typeof window !== 'undefined') {
+      throw new Error('Gemini client cannot be used in browser environment');
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not configured');
+    }
+
+    genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  }
+  return genAI;
+}
 
 // Configuration
 const GEMINI_MODEL = 'gemini-flash-latest';
@@ -138,7 +154,8 @@ export async function generateCompletion(
 ): Promise<{ text: string; provider: 'gemini' | 'groq' }> {
   return executeWithRetryAndFallback(
     async () => {
-      const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+      const client = getGeminiClient();
+      const model = client.getGenerativeModel({ model: GEMINI_MODEL });
 
       // Build the full prompt with system instruction if provided
       const fullPrompt = options?.systemPrompt
@@ -174,7 +191,8 @@ export async function generateCompletionWithImages(
 ): Promise<{ text: string; provider: 'gemini' | 'groq' }> {
   return executeWithRetryAndFallback(
     async () => {
-      const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+      const client = getGeminiClient();
+      const model = client.getGenerativeModel({ model: GEMINI_MODEL });
 
       const imageParts = images.map(img => ({
         inlineData: {
@@ -450,17 +468,28 @@ function extractBalancedJson(text: string): string | null {
  * Get the Gemini model instance (for direct use cases that need specific Gemini features)
  */
 export function getGeminiModel() {
-  return genAI.getGenerativeModel({ model: GEMINI_MODEL });
+  const client = getGeminiClient();
+  return client.getGenerativeModel({ model: GEMINI_MODEL });
 }
 
 /**
  * Check if AI client is properly configured
+ * Safe to call from both client and server
  */
 export function isAIConfigured(): {
   gemini: boolean;
   groq: boolean;
   hasAnyProvider: boolean;
 } {
+  // Return false for all if in browser environment
+  if (typeof window !== 'undefined') {
+    return {
+      gemini: false,
+      groq: false,
+      hasAnyProvider: false,
+    };
+  }
+
   const gemini = Boolean(process.env.GEMINI_API_KEY);
   const groq = isGroqConfigured();
 

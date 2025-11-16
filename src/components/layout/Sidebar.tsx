@@ -9,11 +9,12 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 const navigationItems = [
+  { name: 'Builder', page: 'builder' as PageView, icon: Workflow },
   { name: 'Dashboard', page: 'dashboard' as PageView, icon: Home },
   { name: 'Designer', page: 'designer' as PageView, icon: Wand2 },
-  { name: 'Test Builder', page: 'flow-builder' as PageView, icon: Workflow },
-  { name: 'Runner', page: 'runner' as PageView, icon: Play },
+  { name: 'Test Builder', page: 'test-builder' as PageView, icon: Workflow },
   { name: 'Reports', page: 'reports' as PageView, icon: FileText, href: '/reports' },
+  { name: 'Runner', page: 'runner' as PageView, icon: Play },
 ];
 
 export function Sidebar() {
