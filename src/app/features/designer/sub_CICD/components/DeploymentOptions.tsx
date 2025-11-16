@@ -99,7 +99,7 @@ export function DeploymentOptions({
         whileHover={{ scale: 1.01 }}
       >
         <div className="flex items-start gap-4 mb-4">
-          <Download className="w-6 h-6 flex-shrink-0 mt-1" style={{ color: currentTheme.colors.accent }} />
+          <Download className="w-6 h-6 shrink-0 mt-1" style={{ color: currentTheme.colors.accent }} />
           <div className="flex-1">
             <h4 className="text-lg font-semibold mb-2" style={{ color: currentTheme.colors.text.primary }}>
               Download as ZIP
@@ -252,7 +252,7 @@ export function DeploymentOptions({
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
         >
-          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#ef4444' }} />
+          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: '#ef4444' }} />
           <div>
             <h4 className="font-semibold mb-1" style={{ color: '#ef4444' }}>
               Deployment Error

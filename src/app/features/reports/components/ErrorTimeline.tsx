@@ -115,7 +115,7 @@ export function ErrorTimeline({ errors }: ErrorTimelineProps) {
                     </div>
 
                     {/* Expand Icon */}
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       {expandedErrors.has(error.id) ? (
                         <ChevronUp className="w-5 h-5" style={{ color: currentTheme.colors.text.secondary }} />
                       ) : (

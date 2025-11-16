@@ -83,6 +83,7 @@ export async function POST(request: NextRequest) {
           durationMs: result.durationMs,
           consoleLogs: result.consoleLogs || [],
           errors: result.errors || [],
+          screenshots: screenshotUrls,
         });
       } catch (error: any) {
         console.error(`Test execution failed for viewport ${viewport}:`, error);
@@ -92,6 +93,7 @@ export async function POST(request: NextRequest) {
           error: error.message,
           consoleLogs: [],
           errors: [{ message: error.message, stack: error.stack }],
+          screenshots: [],
         });
       }
     }

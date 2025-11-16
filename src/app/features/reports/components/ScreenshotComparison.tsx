@@ -150,7 +150,7 @@ export function ScreenshotComparison({
                 borderColor: '#ef444430',
               }}
             >
-              <X className="w-5 h-5 flex-shrink-0" style={{ color: '#ef4444' }} />
+              <X className="w-5 h-5 shrink-0" style={{ color: '#ef4444' }} />
               <div className="flex-1">
                 <p className="text-sm font-medium" style={{ color: '#ef4444' }}>
                   Visual differences detected
@@ -174,7 +174,7 @@ export function ScreenshotComparison({
                 borderColor: '#22c55e30',
               }}
             >
-              <Check className="w-5 h-5 flex-shrink-0" style={{ color: '#22c55e' }} />
+              <Check className="w-5 h-5 shrink-0" style={{ color: '#22c55e' }} />
               <div className="flex-1">
                 <p className="text-sm font-medium" style={{ color: '#22c55e' }}>
                   No visual differences

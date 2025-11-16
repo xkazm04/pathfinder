@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTheme } from '@/lib/stores/appStore';
-import { ThemedCard, ThemedCardHeader, ThemedCardContent } from '@/components/ui/ThemedCard';
+import { ThemedCardHeader, ThemedCardContent } from '@/components/ui/ThemedCard';
 import { Badge } from '@/components/ui/Badge';
 import { motion, AnimatePresence } from 'framer-motion';
 import { analyzeIntent, type IntentAnalysis } from '@/lib/nl-test/intentAnalyzer';
@@ -99,23 +99,8 @@ export function AIAssistantPanel({ targetUrl, description, onApplySteps }: AIAss
     return '#ef4444';
   };
 
-  const getTestTypeColor = (type: string) => {
-    switch (type) {
-      case 'functional':
-        return '#3b82f6';
-      case 'visual':
-        return '#8b5cf6';
-      case 'accessibility':
-        return '#10b981';
-      case 'performance':
-        return '#f59e0b';
-      default:
-        return currentTheme.colors.text.secondary;
-    }
-  };
-
   return (
-    <ThemedCard variant="bordered">
+    <div>
       <ThemedCardHeader
         title="AI Assistant"
         subtitle="Get intelligent test recommendations"
@@ -179,7 +164,7 @@ export function AIAssistantPanel({ targetUrl, description, onApplySteps }: AIAss
               borderColor: '#ef444430',
             }}
           >
-            <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: '#ef4444' }} />
+            <AlertCircle className="w-5 h-5 shrink-0" style={{ color: '#ef4444' }} />
             <div className="flex-1">
               <p className="text-sm font-medium mb-1" style={{ color: '#ef4444' }}>
                 Analysis Failed
@@ -220,14 +205,7 @@ export function AIAssistantPanel({ targetUrl, description, onApplySteps }: AIAss
                 </div>
               </div>
 
-              <Badge
-                variant="secondary"
-                style={{
-                  backgroundColor: getTestTypeColor(analysis.testType) + '20',
-                  color: getTestTypeColor(analysis.testType),
-                  borderColor: getTestTypeColor(analysis.testType) + '40',
-                }}
-              >
+              <Badge variant="secondary">
                 {analysis.testType}
               </Badge>
             </div>
@@ -273,7 +251,7 @@ export function AIAssistantPanel({ targetUrl, description, onApplySteps }: AIAss
                         >
                           <div className="flex items-start gap-2">
                             <span
-                              className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium"
+                              className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium"
                               style={{
                                 backgroundColor: currentTheme.colors.primary + '20',
                                 color: currentTheme.colors.primary,
@@ -288,7 +266,7 @@ export function AIAssistantPanel({ targetUrl, description, onApplySteps }: AIAss
                               </p>
                               {step.isAmbiguous && step.clarification && (
                                 <p className="text-xs mt-1 flex items-start gap-1" style={{ color: '#f59e0b' }}>
-                                  <AlertTriangle className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                                  <AlertTriangle className="w-3 h-3 shrink-0 mt-0.5" />
                                   {step.clarification}
                                 </p>
                               )}
@@ -311,7 +289,7 @@ export function AIAssistantPanel({ targetUrl, description, onApplySteps }: AIAss
                 <div className="space-y-1">
                   {analysis.warnings.map((warning, index) => (
                     <div key={index} className="flex items-start gap-2 text-xs" style={{ color: '#f59e0b' }}>
-                      <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                       <span>{warning}</span>
                     </div>
                   ))}
@@ -328,7 +306,7 @@ export function AIAssistantPanel({ targetUrl, description, onApplySteps }: AIAss
                 <div className="space-y-1">
                   {analysis.suggestions.map((suggestion, index) => (
                     <div key={index} className="flex items-start gap-2 text-xs" style={{ color: currentTheme.colors.primary }}>
-                      <Lightbulb className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                      <Lightbulb className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                       <span>{suggestion}</span>
                     </div>
                   ))}
@@ -372,6 +350,6 @@ export function AIAssistantPanel({ targetUrl, description, onApplySteps }: AIAss
           </motion.div>
         )}
       </ThemedCardContent>
-    </ThemedCard>
+    </div>
   );
 }

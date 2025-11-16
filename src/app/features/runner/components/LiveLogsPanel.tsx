@@ -123,6 +123,79 @@ export function LiveLogsPanel({ logs, networkLogs = [], errors = [] }: LiveLogsP
         </div>
       </button>
 
+      {/* Minimized Preview - Last 3 Logs */}
+      {!isExpanded && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="px-6 py-2 overflow-hidden"
+        >
+          <div
+            className="font-mono text-xs space-y-1 p-2 rounded"
+            style={{
+              backgroundColor: currentTheme.colors.surface,
+            }}
+          >
+            {activeTab === 'console' && (
+              <>
+                {logs.length === 0 ? (
+                  <div style={{ color: currentTheme.colors.text.tertiary }}>No console logs yet...</div>
+                ) : (
+                  logs.slice(-3).map((log, index) => (
+                    <div key={index} className="flex gap-2 truncate">
+                      <span style={{ color: currentTheme.colors.text.tertiary }}>
+                        [{new Date(log.timestamp).toLocaleTimeString()}]
+                      </span>
+                      <span style={{ color: getLogColor(log.type, currentTheme.colors.accent, currentTheme.colors.text.secondary) }}>
+                        [{log.type.toUpperCase()}]
+                      </span>
+                      <span style={{ color: currentTheme.colors.text.secondary }} className="truncate">
+                        {log.message}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+
+            {activeTab === 'network' && (
+              <>
+                {networkLogs.length === 0 ? (
+                  <div style={{ color: currentTheme.colors.text.tertiary }}>No network activity yet...</div>
+                ) : (
+                  networkLogs.slice(-3).map((log, index) => (
+                    <div key={index} className="flex gap-2 truncate">
+                      <span style={{ color: currentTheme.colors.accent }}>{log.method}</span>
+                      <span style={{ color: getNetworkStatusColor(log.status) }}>
+                        [{log.status}]
+                      </span>
+                      <span style={{ color: currentTheme.colors.text.secondary }} className="truncate">
+                        {log.url}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+
+            {activeTab === 'errors' && (
+              <>
+                {errors.length === 0 ? (
+                  <div style={{ color: '#22c55e' }}>No errors ✓</div>
+                ) : (
+                  errors.slice(-3).map((error, index) => (
+                    <div key={index} className="truncate" style={{ color: '#ef4444' }}>
+                      {error.message}
+                    </div>
+                  ))
+                )}
+              </>
+            )}
+          </div>
+        </motion.div>
+      )}
+
       {/* Expandable Content */}
       <AnimatePresence>
         {isExpanded && (

@@ -6,22 +6,7 @@ import { Designer } from '@/app/features/designer/Designer';
 import { RealRunner } from '@/app/features/runner/RealRunner';
 import { Reports } from '@/app/features/reports/Reports';
 import { FlowBuilder } from './features/flow-builder';
-
-/**
- * Get theme-specific mask overlay color
- */
-const getMaskColor = (themeId: string): string => {
-  switch (themeId) {
-    case 'cyber':
-      return 'rgba(3, 7, 18, 0.92)'; // Very dark blue-black with cyan tint
-    case 'crimson':
-      return 'rgba(0, 0, 0, 0.94)'; // Almost pure black with slight red tint
-    case 'slate':
-      return 'rgba(0, 0, 0, 0.93)'; // Pure black with slate tint
-    default:
-      return 'rgba(3, 7, 18, 0.92)';
-  }
-};
+import { AnimatedLogoBackground } from '@/components/logo/AnimatedLogoBackground';
 
 export default function Home() {
   const { currentPage, reportId } = useNavigation();
@@ -53,29 +38,11 @@ export default function Home() {
 
   return (
     <div className="relative">
-      {/* Background image with theme-specific mask */}
-
+      {/* Animated background logo with neon glow effect on page transitions */}
+      <AnimatedLogoBackground theme={currentTheme} triggerKey={currentPage} />
 
       {/* Content layer */}
       <div className="relative z-10">
-              <div
-        className="fixed inset-0 z-0 pointer-events-none"
-        style={{
-          backgroundImage: 'url(/logo/logo_full.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          opacity: 0.05,
-        }}
-      >
-        {/* Theme-specific mask layer */}
-        <div
-          className="absolute inset-0 opacity-60"
-          style={{
-            background: `linear-gradient(135deg, ${getMaskColor(currentTheme.id)} 0%, ${currentTheme.colors.background} 100%)`,
-          }}
-        />
-      </div>
         {content}
       </div>
     </div>

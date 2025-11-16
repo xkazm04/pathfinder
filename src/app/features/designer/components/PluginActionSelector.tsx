@@ -358,7 +358,7 @@ export function PluginActionSelector({ onSelect, onCancel }: PluginActionSelecto
                         style={{ backgroundColor: currentTheme.colors.surface }}
                         data-testid={`plugin-item-${plugin.metadata.id}`}
                       >
-                        <Icon className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: currentTheme.colors.accent }} />
+                        <Icon className="w-5 h-5 mt-0.5 shrink-0" style={{ color: currentTheme.colors.accent }} />
                         <div className="flex-1 min-w-0">
                           <div className="font-medium" style={{ color: currentTheme.colors.text.primary }}>
                             {plugin.metadata.displayName}

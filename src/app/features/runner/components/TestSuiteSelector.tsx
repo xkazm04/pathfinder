@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from '@/lib/stores/appStore';
 import { ThemedCardHeader, ThemedCardContent } from '@/components/ui/ThemedCard';
 import { getTestSuites } from '@/lib/supabase/testSuites';
+import { getTestScenarios } from '@/lib/supabase/suiteAssets';
 import { TestSuite } from '@/lib/types';
 import { FileCode, Search } from 'lucide-react';
 import { TestSuiteItem } from './TestSuiteItem';
@@ -13,9 +14,13 @@ interface TestSuiteSelectorProps {
   onSelectSuite: (suite: TestSuite | null) => void;
 }
 
+interface SuiteWithScenarioCount extends TestSuite {
+  scenarioCount: number;
+}
+
 export function TestSuiteSelector({ selectedSuite, onSelectSuite }: TestSuiteSelectorProps) {
   const { currentTheme } = useTheme();
-  const [suites, setSuites] = useState<TestSuite[]>([]);
+  const [suites, setSuites] = useState<SuiteWithScenarioCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -27,7 +32,19 @@ export function TestSuiteSelector({ selectedSuite, onSelectSuite }: TestSuiteSel
     try {
       setLoading(true);
       const data = await getTestSuites();
-      setSuites(data);
+
+      // Load scenario counts for each suite
+      const suitesWithCounts = await Promise.all(
+        data.map(async (suite) => {
+          const scenarios = await getTestScenarios(suite.id);
+          return {
+            ...suite,
+            scenarioCount: scenarios.length,
+          };
+        })
+      );
+
+      setSuites(suitesWithCounts);
     } catch (error) {
       // Failed to load test suites - silently fail
     } finally {

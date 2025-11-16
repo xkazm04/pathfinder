@@ -196,3 +196,95 @@ export async function updateTestScenario(
     throw new Error(`Failed to update scenario: ${error.message}`);
   }
 }
+
+/**
+ * Save a single flow scenario
+ */
+export async function saveFlowScenario(
+  suiteId: string,
+  flowName: string,
+  flowDescription: string,
+  flowSteps: any[]
+): Promise<string> {
+  const scenarioRecord = {
+    suite_id: suiteId,
+    title: flowName,
+    description: flowDescription,
+    steps: flowSteps,
+    priority: 'medium',
+    category: 'flow-builder',
+    confidence_score: 1.0, // User-created flows have full confidence
+    order_index: 0,
+  };
+
+  const { data, error } = await supabase
+    .from('test_scenarios')
+    .insert([scenarioRecord])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Failed to save flow scenario:', error);
+    throw new Error(`Failed to save flow: ${error.message}`);
+  }
+
+  return data.id;
+}
+
+/**
+ * Update an existing flow scenario
+ */
+export async function updateFlowScenario(
+  scenarioId: string,
+  flowName: string,
+  flowDescription: string,
+  flowSteps: any[]
+): Promise<void> {
+  const { error } = await supabase
+    .from('test_scenarios')
+    .update({
+      title: flowName,
+      description: flowDescription,
+      steps: flowSteps,
+    })
+    .eq('id', scenarioId);
+
+  if (error) {
+    console.error('Failed to update flow scenario:', error);
+    throw new Error(`Failed to update flow: ${error.message}`);
+  }
+}
+
+/**
+ * Get flow scenarios for a suite (filter by category)
+ */
+export async function getFlowScenarios(suiteId: string): Promise<TestScenario[]> {
+  const { data, error } = await supabase
+    .from('test_scenarios')
+    .select('*')
+    .eq('suite_id', suiteId)
+    .eq('category', 'flow-builder')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Failed to fetch flow scenarios:', error);
+    return [];
+  }
+
+  if (!data) {
+    return [];
+  }
+
+  return data.map((record) => ({
+    id: record.id,
+    name: record.title,
+    description: record.description,
+    steps: record.steps,
+    priority: record.priority,
+    category: record.category,
+    expectedOutcomes: record.expected_outcome
+      ? record.expected_outcome.split('; ')
+      : [],
+    viewports: [],
+  }));
+}

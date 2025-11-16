@@ -168,19 +168,19 @@ function stepToPlaywrightCode(step: FlowStep): string {
 
   switch (type) {
     case 'navigate':
-      return `await page.goto('${config.url || ''}');`;
+      return `await page.goto('${config.url || ''}', { waitUntil: 'networkidle' });`;
 
     case 'click':
-      return `await page.click('${config.selector || ''}');`;
+      return `await page.locator('${config.selector || ''}').click();`;
 
     case 'fill':
-      return `await page.fill('${config.selector || ''}', '${config.value || ''}');`;
+      return `await page.locator('${config.selector || ''}').fill('${config.value || ''}');`;
 
     case 'select':
-      return `await page.selectOption('${config.selector || ''}', '${config.value || ''}');`;
+      return `await page.locator('${config.selector || ''}').selectOption('${config.value || ''}');`;
 
     case 'hover':
-      return `await page.hover('${config.selector || ''}');`;
+      return `await page.locator('${config.selector || ''}').hover();`;
 
     case 'assert':
       return `expect(${config.assertion || 'true'}).toBeTruthy();`;
@@ -196,7 +196,7 @@ function stepToPlaywrightCode(step: FlowStep): string {
 
     case 'wait':
       if (config.selector) {
-        return `await page.waitForSelector('${config.selector}', { timeout: ${config.timeout || 30000} });`;
+        return `await page.locator('${config.selector || ''}').waitFor({ state: 'visible', timeout: ${config.timeout || 30000} });`;
       }
       return `await page.waitForTimeout(${config.timeout || 3000});`;
 

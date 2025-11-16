@@ -181,7 +181,7 @@ export function RootCauseAnalysisModal({
                 className="m-6 p-4 rounded-lg flex items-start gap-3"
                 style={{ backgroundColor: '#ef444420', border: '1px solid #ef4444' }}
               >
-                <AlertTriangle className="w-5 h-5 flex-shrink-0" style={{ color: '#ef4444' }} />
+                <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: '#ef4444' }} />
                 <div>
                   <p className="font-medium" style={{ color: '#ef4444' }}>
                     Analysis Failed

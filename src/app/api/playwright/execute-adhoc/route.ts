@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
-import { chromium } from 'playwright';
-import fs from 'fs/promises';
-import path from 'path';
-import os from 'os';
+import { chromium, Page } from 'playwright';
 
 export const maxDuration = 120;
 
 interface ExecuteAdhocRequest {
-  testCode: string;
+  flowSteps?: any[];
+  testCode?: string; // Deprecated, kept for backward compatibility
   targetUrl: string;
   testName: string;
   viewport?: {
@@ -17,33 +15,113 @@ interface ExecuteAdhocRequest {
 }
 
 /**
+ * Execute a single flow step with retry logic
+ */
+async function executeFlowStep(page: Page, step: any): Promise<void> {
+  const { type, config } = step;
+
+  switch (type) {
+    case 'navigate':
+      await page.goto(config.url || '', { waitUntil: 'networkidle', timeout: 30000 });
+      break;
+
+    case 'click':
+      const clickLocator = page.locator(config.selector || '');
+      // Wait for element to be visible and scroll into view
+      await clickLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await clickLocator.scrollIntoViewIfNeeded();
+      // Try normal click first, then force click if intercepted
+      try {
+        await clickLocator.click({ timeout: 5000 });
+      } catch (error: any) {
+        // If click was intercepted, use force
+        if (error.message.includes('intercept')) {
+          await clickLocator.click({ force: true });
+        } else {
+          throw error;
+        }
+      }
+      break;
+
+    case 'fill':
+      const fillLocator = page.locator(config.selector || '');
+      await fillLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await fillLocator.scrollIntoViewIfNeeded();
+      await fillLocator.fill(config.value || '');
+      break;
+
+    case 'select':
+      const selectLocator = page.locator(config.selector || '');
+      await selectLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await selectLocator.scrollIntoViewIfNeeded();
+      await selectLocator.selectOption(config.value || '');
+      break;
+
+    case 'hover':
+      const hoverLocator = page.locator(config.selector || '');
+      await hoverLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await hoverLocator.scrollIntoViewIfNeeded();
+      await hoverLocator.hover();
+      break;
+
+    case 'verify':
+      const verifyLocator = page.locator(config.selector || '');
+      await verifyLocator.waitFor({ state: 'visible', timeout: 10000 });
+      if (config.expectedResult) {
+        const text = await verifyLocator.textContent();
+        if (!text?.includes(config.expectedResult)) {
+          throw new Error(`Expected text "${config.expectedResult}" not found in element "${config.selector}"`);
+        }
+      }
+      break;
+
+    case 'wait':
+      if (config.selector) {
+        await page.locator(config.selector || '').waitFor({ state: 'visible', timeout: config.timeout || 30000 });
+      } else {
+        await page.waitForTimeout(config.timeout || 3000);
+      }
+      break;
+
+    case 'screenshot':
+      // Just a placeholder, screenshots are captured after each step in the main flow
+      break;
+
+    default:
+      console.warn(`Unknown step type: ${type}`);
+  }
+}
+
+/**
  * Execute ad-hoc Playwright test code for validation
  * POST /api/playwright/execute-adhoc
  */
 export async function POST(request: Request) {
   let browser;
-  let tempDir: string | null = null;
 
   try {
     const body: ExecuteAdhocRequest = await request.json();
-    const { testCode, targetUrl, testName, viewport } = body;
+    const { flowSteps, targetUrl, testName, viewport } = body;
 
-    if (!testCode || !targetUrl) {
+    if (!targetUrl) {
       return NextResponse.json(
-        { error: 'testCode and targetUrl are required' },
+        { error: 'targetUrl is required' },
         { status: 400 }
       );
     }
 
-    // Create temporary directory for test file
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'playwright-adhoc-'));
-    const testFilePath = path.join(tempDir, 'test.spec.ts');
-
-    // Write test code to file
-    await fs.writeFile(testFilePath, testCode, 'utf-8');
+    if (!flowSteps || flowSteps.length === 0) {
+      return NextResponse.json(
+        { error: 'flowSteps are required' },
+        { status: 400 }
+      );
+    }
 
     // Launch browser
-    browser = await chromium.launch({ headless: true });
+    browser = await chromium.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     const context = await browser.newContext({
       viewport: viewport || { width: 1920, height: 1080 },
     });
@@ -72,30 +150,23 @@ export async function POST(request: Request) {
     let status: 'pass' | 'fail' = 'pass';
 
     try {
-      // Execute the test code dynamically
-      // For simplicity, we'll parse and execute each step manually
+      // Navigate to target URL first
       await page.goto(targetUrl, { waitUntil: 'networkidle', timeout: 30000 });
 
-      // Extract and execute steps from test code
-      const stepMatches = testCode.matchAll(/await\s+(page\.[^;]+);/g);
-      for (const match of stepMatches) {
-        const statement = match[1];
-
-        // Skip the goto since we already navigated
-        if (statement.includes('page.goto')) {
-          continue;
-        }
-
+      // Execute each flow step
+      for (let i = 0; i < flowSteps.length; i++) {
+        const step = flowSteps[i];
         try {
-          // Evaluate the statement
-          await eval(`(async () => { await ${statement}; })()`);
+          await executeFlowStep(page, step);
         } catch (stepError: unknown) {
           const errorMessage = stepError instanceof Error ? stepError.message : 'Step execution failed';
           errors.push({
-            message: `Failed to execute: ${statement} - ${errorMessage}`,
+            message: `Step ${i + 1} (${step.type}) failed: ${errorMessage}`,
+            stack: stepError instanceof Error ? stepError.stack : undefined,
           });
           status = 'fail';
-          break;
+          // Continue with next step or break
+          break; // Stop on first error
         }
       }
 
@@ -116,11 +187,6 @@ export async function POST(request: Request) {
 
     await browser.close();
 
-    // Clean up temp directory
-    if (tempDir) {
-      await fs.rm(tempDir, { recursive: true, force: true });
-    }
-
     return NextResponse.json({
       success: true,
       status,
@@ -134,15 +200,6 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     if (browser) {
       await browser.close();
-    }
-
-    // Clean up temp directory
-    if (tempDir) {
-      try {
-        await fs.rm(tempDir, { recursive: true, force: true });
-      } catch {
-        // Ignore cleanup errors
-      }
     }
 
     const errorMessage = error instanceof Error ? error.message : 'Test execution failed';

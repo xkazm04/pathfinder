@@ -87,7 +87,7 @@ export async function executeTest(
     });
 
     // Execute the test
-    const result = await runTestScenarios(page, options, screenshots);
+    const result = await runTestScenarios(page, options, screenshots, consoleLogs);
 
     const duration = Date.now() - startTime;
 
@@ -126,20 +126,248 @@ export async function executeTest(
 }
 
 /**
+ * Execute a single flow step with retry logic
+ */
+async function executeFlowStep(
+  page: Page,
+  step: any,
+  screenshots: Array<{ buffer: Buffer; stepName: string; timestamp: number }>,
+  screenshotOnEveryStep: boolean,
+  consoleLogs: ConsoleLog[]
+): Promise<void> {
+  const { type, config } = step;
+
+  switch (type) {
+    case 'navigate':
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Navigating to ${config.url}`,
+        timestamp: new Date().toISOString(),
+      });
+      await page.goto(config.url || '', { waitUntil: 'networkidle', timeout: 30000 });
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Page loaded successfully`,
+        timestamp: new Date().toISOString(),
+      });
+      break;
+
+    case 'click':
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Clicking element: ${config.selector}`,
+        timestamp: new Date().toISOString(),
+      });
+      const clickLocator = page.locator(config.selector || '');
+      // Wait for element to be visible and scroll into view
+      await clickLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await clickLocator.scrollIntoViewIfNeeded();
+      // Try normal click first, then force click if intercepted
+      try {
+        await clickLocator.click({ timeout: 5000 });
+        consoleLogs.push({
+          type: 'info',
+          message: `[Playwright] Click successful`,
+          timestamp: new Date().toISOString(),
+        });
+      } catch (error: any) {
+        // If click was intercepted, use force
+        if (error.message.includes('intercept')) {
+          consoleLogs.push({
+            type: 'warn',
+            message: `[Playwright] Element intercepted, using force click`,
+            timestamp: new Date().toISOString(),
+          });
+          await clickLocator.click({ force: true });
+        } else {
+          throw error;
+        }
+      }
+      break;
+
+    case 'fill':
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Filling field: ${config.selector} with "${config.value}"`,
+        timestamp: new Date().toISOString(),
+      });
+      const fillLocator = page.locator(config.selector || '');
+      await fillLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await fillLocator.scrollIntoViewIfNeeded();
+      await fillLocator.fill(config.value || '');
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Field filled successfully`,
+        timestamp: new Date().toISOString(),
+      });
+      break;
+
+    case 'select':
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Selecting option: ${config.value} from ${config.selector}`,
+        timestamp: new Date().toISOString(),
+      });
+      const selectLocator = page.locator(config.selector || '');
+      await selectLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await selectLocator.scrollIntoViewIfNeeded();
+      await selectLocator.selectOption(config.value || '');
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Option selected successfully`,
+        timestamp: new Date().toISOString(),
+      });
+      break;
+
+    case 'hover':
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Hovering over element: ${config.selector}`,
+        timestamp: new Date().toISOString(),
+      });
+      const hoverLocator = page.locator(config.selector || '');
+      await hoverLocator.waitFor({ state: 'visible', timeout: 10000 });
+      await hoverLocator.scrollIntoViewIfNeeded();
+      await hoverLocator.hover();
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Hover successful`,
+        timestamp: new Date().toISOString(),
+      });
+      break;
+
+    case 'verify':
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Verifying element: ${config.selector}`,
+        timestamp: new Date().toISOString(),
+      });
+      const verifyLocator = page.locator(config.selector || '');
+      await verifyLocator.waitFor({ state: 'visible', timeout: 10000 });
+      if (config.expectedResult) {
+        const text = await verifyLocator.textContent();
+        if (!text?.includes(config.expectedResult)) {
+          throw new Error(`Expected text "${config.expectedResult}" not found in element "${config.selector}"`);
+        }
+        consoleLogs.push({
+          type: 'info',
+          message: `[Playwright] Verification passed: found "${config.expectedResult}"`,
+          timestamp: new Date().toISOString(),
+        });
+      } else {
+        consoleLogs.push({
+          type: 'info',
+          message: `[Playwright] Element is visible`,
+          timestamp: new Date().toISOString(),
+        });
+      }
+      break;
+
+    case 'wait':
+      if (config.selector) {
+        consoleLogs.push({
+          type: 'info',
+          message: `[Playwright] Waiting for element: ${config.selector}`,
+          timestamp: new Date().toISOString(),
+        });
+        await page.locator(config.selector || '').waitFor({ state: 'visible', timeout: config.timeout || 30000 });
+        consoleLogs.push({
+          type: 'info',
+          message: `[Playwright] Element appeared`,
+          timestamp: new Date().toISOString(),
+        });
+      } else {
+        consoleLogs.push({
+          type: 'info',
+          message: `[Playwright] Waiting ${config.timeout || 3000}ms`,
+          timestamp: new Date().toISOString(),
+        });
+        await page.waitForTimeout(config.timeout || 3000);
+      }
+      break;
+
+    case 'screenshot':
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Taking screenshot: ${config.description || 'manual-screenshot'}`,
+        timestamp: new Date().toISOString(),
+      });
+      const screenshot = await page.screenshot({ fullPage: true, type: 'png' });
+      screenshots.push({
+        buffer: screenshot,
+        stepName: config.description || 'manual-screenshot',
+        timestamp: Date.now(),
+      });
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Screenshot captured`,
+        timestamp: new Date().toISOString(),
+      });
+      break;
+
+    default:
+      console.warn(`Unknown step type: ${type}`);
+  }
+
+  // Capture screenshot after step if enabled
+  if (screenshotOnEveryStep) {
+    const stepScreenshot = await page.screenshot({ fullPage: true, type: 'png' });
+    screenshots.push({
+      buffer: stepScreenshot,
+      stepName: `${type}-${config.description || 'step'}`,
+      timestamp: Date.now(),
+    });
+  }
+}
+
+/**
  * Run test scenarios extracted from test code
  */
 async function runTestScenarios(
   page: Page,
   options: TestExecutionOptions,
-  screenshots: Array<{ buffer: Buffer; stepName: string; timestamp: number }>
+  screenshots: Array<{ buffer: Buffer; stepName: string; timestamp: number }>,
+  consoleLogs: ConsoleLog[]
 ): Promise<{ passed: boolean; errors: ErrorObject[] }> {
   const errors: ErrorObject[] = [];
 
   try {
-    // Navigate to target URL
+    // Parse flow steps from test code (expecting JSON)
+    let flowSteps: any[] = [];
+    try {
+      const parsedCode = JSON.parse(options.testCode);
+      flowSteps = parsedCode.steps || parsedCode || [];
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Parsed ${flowSteps.length} test steps`,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (parseError) {
+      // If parsing fails, it might be Playwright code string
+      // For now, just navigate to the target URL
+      console.warn('Could not parse test code as JSON, using basic navigation');
+      flowSteps = [];
+    }
+
+    // Navigate to target URL first
+    consoleLogs.push({
+      type: 'info',
+      message: `[Playwright] Navigating to target URL: ${options.targetUrl}`,
+      timestamp: new Date().toISOString(),
+    });
     await page.goto(options.targetUrl, { waitUntil: 'networkidle', timeout: 30000 });
+    consoleLogs.push({
+      type: 'info',
+      message: `[Playwright] Page loaded successfully`,
+      timestamp: new Date().toISOString(),
+    });
 
     // Capture initial screenshot
+    consoleLogs.push({
+      type: 'info',
+      message: `[Playwright] Capturing initial screenshot`,
+      timestamp: new Date().toISOString(),
+    });
     const initialScreenshot = await page.screenshot({ fullPage: true, type: 'png' });
     screenshots.push({
       buffer: initialScreenshot,
@@ -147,30 +375,56 @@ async function runTestScenarios(
       timestamp: Date.now(),
     });
 
-    // Parse and execute test code
-    // For now, we'll execute basic navigation and interaction tests
-    // In a production system, you'd parse the test code and execute it dynamically
-
-    // Example: Check if page loaded successfully
-    const title = await page.title();
-    if (!title || title.length === 0) {
-      errors.push({
-        message: 'Page title is empty',
+    // Execute each flow step
+    for (let i = 0; i < flowSteps.length; i++) {
+      const step = flowSteps[i];
+      consoleLogs.push({
+        type: 'info',
+        message: `[Playwright] Executing step ${i + 1}/${flowSteps.length}: ${step.type}`,
+        timestamp: new Date().toISOString(),
       });
-    }
+      try {
+        await executeFlowStep(page, step, screenshots, options.screenshotOnEveryStep, consoleLogs);
+      } catch (stepError: any) {
+        consoleLogs.push({
+          type: 'error',
+          message: `[Playwright] Step ${i + 1} failed: ${stepError.message}`,
+          timestamp: new Date().toISOString(),
+        });
+        errors.push({
+          message: `Step ${i + 1} failed: ${stepError.message}`,
+          stack: stepError.stack,
+        });
 
-    // Wait for body to be visible
-    await page.waitForSelector('body', { timeout: 10000 });
+        // Capture error screenshot
+        try {
+          const errorScreenshot = await page.screenshot({ fullPage: true, type: 'png' });
+          screenshots.push({
+            buffer: errorScreenshot,
+            stepName: `step-${i + 1}-error`,
+            timestamp: Date.now(),
+          });
+        } catch (screenshotError) {
+          console.error('Failed to capture error screenshot:', screenshotError);
+        }
+
+        // Continue with next step (or break if you want to stop on first error)
+        // break; // Uncomment to stop on first error
+      }
+    }
 
     // Capture final screenshot
-    if (options.screenshotOnEveryStep || errors.length > 0) {
-      const finalScreenshot = await page.screenshot({ fullPage: true, type: 'png' });
-      screenshots.push({
-        buffer: finalScreenshot,
-        stepName: 'final-state',
-        timestamp: Date.now(),
-      });
-    }
+    consoleLogs.push({
+      type: 'info',
+      message: `[Playwright] Capturing final screenshot`,
+      timestamp: new Date().toISOString(),
+    });
+    const finalScreenshot = await page.screenshot({ fullPage: true, type: 'png' });
+    screenshots.push({
+      buffer: finalScreenshot,
+      stepName: 'final-state',
+      timestamp: Date.now(),
+    });
 
     return {
       passed: errors.length === 0,

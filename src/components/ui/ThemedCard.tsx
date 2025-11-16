@@ -129,7 +129,7 @@ export function ThemedCardHeader({
       <div className="flex items-center gap-3 flex-1 min-w-0">
         {icon && (
           <div
-            className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-lg"
+            className="shrink-0 w-10 h-10 flex items-center justify-center rounded-lg"
             style={{
               background: `${currentTheme.colors.primary}20`,
               borderColor: `${currentTheme.colors.primary}40`,
@@ -162,7 +162,7 @@ export function ThemedCardHeader({
           </div>
         )}
       </div>
-      {action && <div className="flex-shrink-0">{action}</div>}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

@@ -49,7 +49,7 @@ export function StepsList({ steps, selectedStepId, onStepClick }: StepsListProps
           }}
         >
           <span
-            className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium"
+            className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium"
             style={{
               backgroundColor: currentTheme.colors.primary + '20',
               color: currentTheme.colors.primary,

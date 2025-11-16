@@ -1,13 +1,20 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import { useTheme } from '@/lib/stores/appStore';
 import { FlowStep } from '../lib/flowTypes';
 import { ThemedCard, ThemedCardHeader, ThemedCardContent } from '@/components/ui/ThemedCard';
-import { Settings } from 'lucide-react';
+import { Settings, Target, CheckCircle2 } from 'lucide-react';
+import { SelectorModal } from './SelectorModal';
+import { detectSelectors, type DetectedElement } from '../sub_FlowSelectors/lib';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface StepEditorProps {
   step: FlowStep;
   onUpdate: (stepId: string, updates: Partial<FlowStep>) => void;
+  selectedSelector?: string;
+  onSelectorApplied?: () => void;
+  targetUrl?: string; // Flow target URL for selector scanning
 }
 
 interface InputFieldProps {
@@ -23,6 +30,10 @@ interface InputFieldProps {
   min?: number;
   step?: number;
   helpText?: string;
+  showScanButton?: boolean;
+  onScanClick?: () => void;
+  scanStatus?: 'idle' | 'ready' | 'scanned';
+  scanLoading?: boolean;
 }
 
 function InputField({
@@ -37,7 +48,11 @@ function InputField({
   rows,
   min,
   step,
-  helpText
+  helpText,
+  showScanButton = false,
+  onScanClick,
+  scanStatus = 'idle',
+  scanLoading = false,
 }: InputFieldProps) {
   const { currentTheme } = useTheme();
   const isTextarea = type === 'textarea';
@@ -52,14 +67,67 @@ function InputField({
 
   const baseClassName = `w-full px-3 py-2 rounded text-sm ${className}`;
 
+  // Scan button color logic
+  const getScanButtonStyle = () => {
+    if (scanStatus === 'scanned') {
+      return {
+        backgroundColor: '#10b981' + '20',
+        color: '#10b981',
+        borderColor: '#10b981' + '40',
+      };
+    } else if (scanStatus === 'ready') {
+      return {
+        backgroundColor: currentTheme.colors.primary + '20',
+        color: currentTheme.colors.primary,
+        borderColor: currentTheme.colors.primary + '40',
+      };
+    } else {
+      return {
+        backgroundColor: currentTheme.colors.surface,
+        color: currentTheme.colors.text.tertiary,
+        borderColor: currentTheme.colors.border,
+      };
+    }
+  };
+
   return (
     <div>
-      <label
-        className="block text-sm font-medium mb-2"
-        style={{ color: currentTheme.colors.text.primary }}
-      >
-        {label}{required && ' *'}
-      </label>
+      <div className="flex items-center justify-between mb-2">
+        <label
+          className="text-sm font-medium"
+          style={{ color: currentTheme.colors.text.primary }}
+        >
+          {label}{required && ' *'}
+        </label>
+        {showScanButton && (
+          <button
+            onClick={onScanClick}
+            disabled={scanStatus === 'idle' || scanLoading}
+            className="px-2 py-1 rounded text-xs transition-all flex items-center gap-1.5"
+            style={{
+              ...getScanButtonStyle(),
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              opacity: scanStatus === 'idle' || scanLoading ? 0.5 : 1,
+            }}
+            title={scanStatus === 'scanned' ? 'Scan completed - Click to select' : 'Scan page for selectors'}
+          >
+            {scanLoading ? (
+              <LoadingSpinner size="sm" />
+            ) : scanStatus === 'scanned' ? (
+              <>
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Scanned</span>
+              </>
+            ) : (
+              <>
+                <Target className="w-3.5 h-3.5" />
+                <span>Scan</span>
+              </>
+            )}
+          </button>
+        )}
+      </div>
       {isTextarea ? (
         <textarea
           value={value}
@@ -95,7 +163,22 @@ function InputField({
   );
 }
 
-export function StepEditor({ step, onUpdate }: StepEditorProps) {
+export function StepEditor({ step, onUpdate, selectedSelector, onSelectorApplied, targetUrl }: StepEditorProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [scanLoading, setScanLoading] = useState(false);
+  const [scanStatus, setScanStatus] = useState<'idle' | 'ready' | 'scanned'>('idle');
+
+  // Update scan status based on targetUrl availability
+  useEffect(() => {
+    if (targetUrl && targetUrl.trim()) {
+      if (scanStatus === 'idle') {
+        setScanStatus('ready');
+      }
+    } else {
+      setScanStatus('idle');
+    }
+  }, [targetUrl]);
+
   const handleConfigChange = (key: string, value: string | number) => {
     onUpdate(step.id, {
       config: {
@@ -103,6 +186,27 @@ export function StepEditor({ step, onUpdate }: StepEditorProps) {
         [key]: value,
       },
     });
+  };
+
+  // Apply selected selector from TestSelectors component or modal
+  useEffect(() => {
+    if (selectedSelector && step.config.selector !== selectedSelector) {
+      handleConfigChange('selector', selectedSelector);
+      // Notify parent that selector was applied to trigger autosync
+      onSelectorApplied?.();
+    }
+  }, [selectedSelector]);
+
+  const handleScanClick = () => {
+    setIsModalOpen(true);
+    if (scanStatus === 'ready') {
+      setScanStatus('scanned');
+    }
+  };
+
+  const handleSelectFromModal = (selector: string, element: DetectedElement) => {
+    handleConfigChange('selector', selector);
+    onSelectorApplied?.();
   };
 
   const renderConfigFields = () => {
@@ -150,6 +254,10 @@ export function StepEditor({ step, onUpdate }: StepEditorProps) {
             className="font-mono"
             helpText="CSS selector or text content"
             required
+            showScanButton
+            onScanClick={handleScanClick}
+            scanStatus={scanStatus}
+            scanLoading={scanLoading}
           />
         );
         break;
@@ -165,6 +273,10 @@ export function StepEditor({ step, onUpdate }: StepEditorProps) {
             testId="step-selector-input"
             className="font-mono"
             required
+            showScanButton
+            onScanClick={handleScanClick}
+            scanStatus={scanStatus}
+            scanLoading={scanLoading}
           />,
           <InputField
             key="value"
@@ -189,6 +301,10 @@ export function StepEditor({ step, onUpdate }: StepEditorProps) {
             testId="step-selector-input"
             className="font-mono"
             required
+            showScanButton
+            onScanClick={handleScanClick}
+            scanStatus={scanStatus}
+            scanLoading={scanLoading}
           />,
           <InputField
             key="value"
@@ -238,6 +354,10 @@ export function StepEditor({ step, onUpdate }: StepEditorProps) {
             testId="step-selector-input"
             className="font-mono"
             required
+            showScanButton
+            onScanClick={handleScanClick}
+            scanStatus={scanStatus}
+            scanLoading={scanLoading}
           />,
           <InputField
             key="expectedResult"
@@ -279,17 +399,28 @@ export function StepEditor({ step, onUpdate }: StepEditorProps) {
   };
 
   return (
-    <ThemedCard variant="bordered">
-      <ThemedCardHeader
-        title={`Edit ${step.type} Step`}
-        subtitle="Configure step parameters"
-        icon={<Settings className="w-5 h-5" />}
-      />
-      <ThemedCardContent>
-        <div className="space-y-4">
-          {renderConfigFields()}
-        </div>
-      </ThemedCardContent>
-    </ThemedCard>
+    <>
+      <div className='py-5'>
+        <ThemedCardHeader
+          title={`Edit Step`}
+          icon={<Settings className="w-5 h-5" />}
+        />
+        <ThemedCardContent>
+          <div className="space-y-4">
+            {renderConfigFields()}
+          </div>
+        </ThemedCardContent>
+      </div>
+
+      {/* Selector Modal */}
+      {targetUrl && (
+        <SelectorModal
+          isOpen={isModalOpen}
+          targetUrl={targetUrl}
+          onClose={() => setIsModalOpen(false)}
+          onSelectSelector={handleSelectFromModal}
+        />
+      )}
+    </>
   );
 }

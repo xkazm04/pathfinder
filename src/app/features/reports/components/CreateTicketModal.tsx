@@ -488,7 +488,7 @@ export function CreateTicketModal({
                 style={{ backgroundColor: '#ef444420', border: '1px solid #ef4444' }}
                 data-testid="error-message"
               >
-                <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
                 <p className="text-sm text-red-500">{error}</p>
               </div>
             )}
@@ -499,7 +499,7 @@ export function CreateTicketModal({
                 style={{ backgroundColor: '#22c55e20', border: '1px solid #22c55e' }}
                 data-testid="success-message"
               >
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
                 <p className="text-sm text-green-500">{success}</p>
               </div>
             )}

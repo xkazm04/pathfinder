@@ -1,12 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, FileText } from 'lucide-react';
 import { TestSuite } from '@/lib/types';
 import { Theme } from '@/lib/theme';
 
 interface TestSuiteItemProps {
-  suite: TestSuite;
+  suite: TestSuite & { scenarioCount?: number };
   isSelected: boolean;
   onClick: () => void;
   theme: Theme;
@@ -67,9 +67,19 @@ export function TestSuiteItem({ suite, isSelected, onClick, theme, index }: Test
 
       {/* Suite Description */}
       {suite.description && (
-        <p className="text-xs line-clamp-2" style={{ color: theme.colors.text.secondary }}>
+        <p className="text-xs line-clamp-2 mb-2" style={{ color: theme.colors.text.secondary }}>
           {suite.description}
         </p>
+      )}
+
+      {/* Scenario Count Badge */}
+      {suite.scenarioCount !== undefined && (
+        <div className="flex items-center gap-1.5 mt-2">
+          <FileText className="w-3.5 h-3.5" style={{ color: theme.colors.text.tertiary }} />
+          <span className="text-xs" style={{ color: theme.colors.text.tertiary }}>
+            {suite.scenarioCount} scenario{suite.scenarioCount !== 1 ? 's' : ''}
+          </span>
+        </div>
       )}
     </motion.button>
   );

@@ -240,7 +240,7 @@ export function BaselineManager({
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="w-5 h-5 flex-shrink-0" style={{ color: '#22c55e' }} />
+                    <CheckCircle className="w-5 h-5 shrink-0" style={{ color: '#22c55e' }} />
                     <div>
                       <p className="text-sm font-medium" style={{ color: '#22c55e' }}>
                         Baseline is set
@@ -256,7 +256,7 @@ export function BaselineManager({
 
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <Calendar className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: currentTheme.colors.text.tertiary }} />
+                  <Calendar className="w-5 h-5 shrink-0 mt-0.5" style={{ color: currentTheme.colors.text.tertiary }} />
                   <div>
                     <p className="text-sm font-medium" style={{ color: currentTheme.colors.text.primary }}>
                       Set on
@@ -268,7 +268,7 @@ export function BaselineManager({
                 </div>
 
                 <div className="flex items-start gap-3">
-                  <Bookmark className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: currentTheme.colors.text.tertiary }} />
+                  <Bookmark className="w-5 h-5 shrink-0 mt-0.5" style={{ color: currentTheme.colors.text.tertiary }} />
                   <div>
                     <p className="text-sm font-medium" style={{ color: currentTheme.colors.text.primary }}>
                       Baseline Run ID
@@ -281,7 +281,7 @@ export function BaselineManager({
 
                 {baseline.notes && (
                   <div className="flex items-start gap-3">
-                    <FileText className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: currentTheme.colors.text.tertiary }} />
+                    <FileText className="w-5 h-5 shrink-0 mt-0.5" style={{ color: currentTheme.colors.text.tertiary }} />
                     <div>
                       <p className="text-sm font-medium" style={{ color: currentTheme.colors.text.primary }}>
                         Notes

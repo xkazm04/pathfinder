@@ -9,6 +9,8 @@ import { Activity, CheckCircle2, XCircle, Minus, LucideIcon } from 'lucide-react
 
 interface ExecutionProgressProps {
   progress: ProgressData;
+  testName?: string;
+  currentScenario?: string;
 }
 
 // Helper component for stat cards
@@ -68,7 +70,7 @@ function StatCard({
  * - Elapsed time counter
  * - Visual status indicators
  */
-export function ExecutionProgress({ progress }: ExecutionProgressProps) {
+export function ExecutionProgress({ progress, testName, currentScenario }: ExecutionProgressProps) {
   const { currentTheme } = useTheme();
 
   const getProgressColor = () => {
@@ -86,6 +88,57 @@ export function ExecutionProgress({ progress }: ExecutionProgressProps) {
         icon={<Activity className="w-5 h-5" />}
       />
       <ThemedCardContent>
+        {/* Test Suite Display */}
+        {testName && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-3 rounded-lg"
+            style={{
+              backgroundColor: `${currentTheme.colors.primary}15`,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: `${currentTheme.colors.primary}40`,
+            }}
+          >
+            <div className="text-xs font-medium mb-1" style={{ color: currentTheme.colors.text.tertiary }}>
+              Test Suite:
+            </div>
+            <div className="text-base font-semibold" style={{ color: currentTheme.colors.text.primary }}>
+              {testName}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Current Scenario Display */}
+        {currentScenario && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-4 p-3 rounded-lg"
+            style={{
+              backgroundColor: `${currentTheme.colors.accent}15`,
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: `${currentTheme.colors.accent}40`,
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Activity className="w-4 h-4 animate-pulse" style={{ color: currentTheme.colors.accent }} />
+              </div>
+              <div className="flex-1">
+                <div className="text-xs font-medium mb-0.5" style={{ color: currentTheme.colors.text.tertiary }}>
+                  Currently Running:
+                </div>
+                <div className="text-sm font-semibold" style={{ color: currentTheme.colors.text.primary }}>
+                  {currentScenario}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         <div className="mt-4 space-y-6">
           {/* Progress Bar */}
           <div>

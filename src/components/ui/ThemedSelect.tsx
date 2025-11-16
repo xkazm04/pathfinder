@@ -193,11 +193,57 @@ export function ThemedSelect({
     // Apply to container
     applyCSSProperties(container);
 
-    // Also apply to content if it exists (for already open dropdowns)
-    const slimContent = document.querySelector('.ss-content') as HTMLElement;
-    if (slimContent) {
-      applyCSSProperties(slimContent);
-    }
+    // Also apply to all content elements (for already open dropdowns anywhere in the DOM)
+    const allSlimContent = document.querySelectorAll('.ss-content');
+    allSlimContent.forEach((slimContent) => {
+      if (slimContent instanceof HTMLElement) {
+        applyCSSProperties(slimContent);
+      }
+    });
+
+    // Apply to main select elements
+    const allSlimMain = document.querySelectorAll('.ss-main');
+    allSlimMain.forEach((slimMain) => {
+      if (slimMain instanceof HTMLElement) {
+        applyCSSProperties(slimMain);
+      }
+    });
+  }, [currentTheme]);
+
+  // Watch for dropdown creation and apply theme immediately
+  useEffect(() => {
+    if (!currentTheme) return;
+
+    // Create a MutationObserver to watch for dropdown content being added to the DOM
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement) {
+            // Check if this is a SlimSelect content element
+            if (node.classList.contains('ss-content')) {
+              applyCSSProperties(node);
+            }
+            // Also check child elements
+            const contentElements = node.querySelectorAll('.ss-content');
+            contentElements.forEach((el) => {
+              if (el instanceof HTMLElement) {
+                applyCSSProperties(el);
+              }
+            });
+          }
+        });
+      });
+    });
+
+    // Observe the entire document body for added nodes
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+    };
   }, [currentTheme]);
 
   return (

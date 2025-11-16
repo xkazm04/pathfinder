@@ -40,7 +40,7 @@ export function DemoBanner({ onDismiss, onCreateRealSuite }: DemoBannerProps) {
       <div className="relative flex items-start gap-4">
         {/* Icon */}
         <div
-          className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center"
+          className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center"
           style={{
             backgroundColor: `${currentTheme.colors.primary}20`,
           }}
@@ -89,7 +89,7 @@ export function DemoBanner({ onDismiss, onCreateRealSuite }: DemoBannerProps) {
         {/* Close Button */}
         <button
           onClick={onDismiss}
-          className="flex-shrink-0 p-1 rounded-md transition-colors"
+          className="shrink-0 p-1 rounded-md transition-colors"
           style={{
             color: currentTheme.colors.text.tertiary,
           }}

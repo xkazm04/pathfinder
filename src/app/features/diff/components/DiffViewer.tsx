@@ -147,7 +147,7 @@ export function DiffViewer({
             }}
           >
             <AlertTriangle
-              className="w-5 h-5 flex-shrink-0"
+              className="w-5 h-5 shrink-0"
               style={{ color: exceedsThreshold ? '#ef4444' : '#f59e0b' }}
             />
             <div className="flex-1">
@@ -177,7 +177,7 @@ export function DiffViewer({
               borderColor: '#22c55e30',
             }}
           >
-            <Check className="w-5 h-5 flex-shrink-0" style={{ color: '#22c55e' }} />
+            <Check className="w-5 h-5 shrink-0" style={{ color: '#22c55e' }} />
             <div className="flex-1">
               <p className="text-sm font-medium" style={{ color: '#22c55e' }}>
                 No visual differences

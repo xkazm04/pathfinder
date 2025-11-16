@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, Wand2, Play, FileText, ChevronLeft, Workflow, FolderGit2 } from 'lucide-react';
+import { Wand2, Play, FileText, ChevronLeft, Workflow, FolderGit2 } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigation, PageView, useProjects } from '@/lib/stores/appStore';
@@ -9,12 +9,10 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
 const navigationItems = [
-  { name: 'Builder', page: 'builder' as PageView, icon: Workflow },
-  { name: 'Dashboard', page: 'dashboard' as PageView, icon: Home },
-  { name: 'Designer', page: 'designer' as PageView, icon: Wand2 },
-  { name: 'Test Builder', page: 'test-builder' as PageView, icon: Workflow },
-  { name: 'Reports', page: 'reports' as PageView, icon: FileText, href: '/reports' },
+  { name: 'Suite Designer', page: 'designer' as PageView, icon: Wand2 },
+  { name: 'Test Builder', page: 'builder' as PageView, icon: Workflow },
   { name: 'Runner', page: 'runner' as PageView, icon: Play },
+  { name: 'Reports', page: 'reports' as PageView, icon: FileText, href: '/reports' },  
 ];
 
 export function Sidebar() {
@@ -60,7 +58,7 @@ export function Sidebar() {
     >
       <nav className="flex h-full flex-col p-4">
         {/* Main Navigation - Top Half */}
-        <div className="space-y-2 flex-shrink-0">
+        <div className="space-y-2 shrink-0">
           {navigationItems.map((item, index) => {
             const Icon = item.icon;
             // Determine if item is active based on route type
@@ -76,7 +74,7 @@ export function Sidebar() {
 
             const content = (
               <>
-                <Icon className="h-5 w-5 flex-shrink-0" />
+                <Icon className="h-5 w-5 shrink-0" />
                 {!isCollapsed && <span>{item.name}</span>}
               </>
             );
@@ -125,7 +123,7 @@ export function Sidebar() {
         <div className="flex-1 min-h-[2rem]" />
 
         {/* Projects Section - Bottom Half */}
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           {/* Divider */}
           <div
             className="mb-4 h-px"
@@ -163,7 +161,7 @@ export function Sidebar() {
                   }`}
                   title={isCollapsed ? project.name : project.description || project.name}
                 >
-                  <FolderGit2 className="h-4 w-4 flex-shrink-0" />
+                  <FolderGit2 className="h-4 w-4 shrink-0" />
                   {!isCollapsed && (
                     <span className="truncate">{project.name}</span>
                   )}

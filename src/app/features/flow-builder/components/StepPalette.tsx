@@ -56,7 +56,7 @@ function PaletteItemCard({ item, categoryColor, onDragStart, onSelect }: Palette
     >
       <div className="flex items-start gap-3">
         <div
-          className="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center"
+          className="shrink-0 w-8 h-8 rounded flex items-center justify-center"
           style={{
             backgroundColor: categoryColor + '20',
             borderWidth: '1px',

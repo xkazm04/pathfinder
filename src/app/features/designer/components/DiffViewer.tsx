@@ -167,10 +167,10 @@ function DiffLine({ change, type, lineNumber }: DiffLineProps) {
       }}
       data-testid={`diff-line-${type}`}
     >
-      <Icon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: iconColor }} />
+      <Icon className="w-3.5 h-3.5 shrink-0 mt-0.5" style={{ color: iconColor }} />
       {lineNumber && (
         <span
-          className="w-10 text-right flex-shrink-0"
+          className="w-10 text-right shrink-0"
           style={{ color: currentTheme.colors.text.tertiary }}
         >
           {lineNumber}

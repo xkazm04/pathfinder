@@ -311,7 +311,7 @@ export function Designer() {
       {error && (
         <ThemedCard variant="bordered">
           <div className="p-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#ef4444' }} />
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: '#ef4444' }} />
             <div className="flex-1">
               <h3 className="font-semibold mb-1" style={{ color: currentTheme.colors.text.primary }}>Error</h3>
               <p className="text-sm" style={{ color: currentTheme.colors.text.secondary }}>{error}</p>

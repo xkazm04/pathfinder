@@ -1,6 +1,6 @@
 // Main exports for the Flow Builder feature
 export { FlowBuilder } from './components/FlowBuilder';
-export { FlowCanvas } from './components/FlowCanvas';
+export { FlowCanvas } from './sub_FlowCanvas/FlowCanvas';
 export { StepPalette } from './components/StepPalette';
 export { StepEditor } from './components/StepEditor';
 

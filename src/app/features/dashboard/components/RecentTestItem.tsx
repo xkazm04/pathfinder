@@ -90,7 +90,7 @@ export function RecentTestItem({ test, index, anomaly }: RecentTestItemProps) {
       <div className="flex items-center gap-3 flex-1">
         {/* Mascot Avatar */}
         {test.mascotConfig && (
-          <div className="flex-shrink-0" data-testid="test-item-mascot">
+          <div className="shrink-0" data-testid="test-item-mascot">
             <MascotAvatar config={test.mascotConfig} size="sm" animate={false} />
           </div>
         )}

@@ -3,6 +3,17 @@ import { devtools, persist } from 'zustand/middleware';
 import { useShallow } from 'zustand/react/shallow';
 import { ThemeVariant, Theme, themes } from '@/lib/theme';
 
+// Detected element type (from selector scanner)
+export interface DetectedElement {
+  selector: string;
+  type: string;
+  text?: string;
+  placeholder?: string;
+  ariaLabel?: string;
+  href?: string;
+  value?: string;
+}
+
 // Health glow status type
 export type HealthGlowStatus = 'excellent' | 'good' | 'poor' | 'none';
 
@@ -64,6 +75,11 @@ interface AppState {
   analysisError: string | null;
   generationError: string | null;
 
+  // Selector Scanner state
+  scannedElements: DetectedElement[];
+  scannedTargetUrl: string | null;
+  lastScanTimestamp: number | null;
+
   // Actions
   setTheme: (theme: ThemeVariant) => void;
   setHealthGlow: (status: HealthGlowStatus) => void;
@@ -86,6 +102,10 @@ interface AppState {
   setAnalysisError: (error: string | null) => void;
   setGenerationError: (error: string | null) => void;
   resetTestState: () => void;
+
+  setScannedElements: (elements: DetectedElement[], targetUrl: string) => void;
+  clearScannedElements: () => void;
+  getScannedElements: (targetUrl: string) => DetectedElement[];
 }
 
 // Helper function to get health glow color
@@ -132,6 +152,11 @@ export const useAppStore = create<AppState>()(
         analysisError: null,
         generationError: null,
 
+        // Initial Selector Scanner state
+        scannedElements: [],
+        scannedTargetUrl: null,
+        lastScanTimestamp: null,
+
         // Theme actions
         setTheme: (theme: ThemeVariant) => {
           set({ themeId: theme, currentTheme: themes[theme] });
@@ -177,15 +202,40 @@ export const useAppStore = create<AppState>()(
           analysisError: null,
           generationError: null,
         }),
+
+        // Selector Scanner actions
+        setScannedElements: (elements: DetectedElement[], targetUrl: string) => set({
+          scannedElements: elements,
+          scannedTargetUrl: targetUrl,
+          lastScanTimestamp: Date.now(),
+        }),
+
+        clearScannedElements: () => set({
+          scannedElements: [],
+          scannedTargetUrl: null,
+          lastScanTimestamp: null,
+        }),
+
+        getScannedElements: (targetUrl: string) => {
+          const state = get();
+          // Return cached elements if URL matches
+          if (state.scannedTargetUrl === targetUrl && state.scannedElements.length > 0) {
+            return state.scannedElements;
+          }
+          return [];
+        },
       }),
       {
         name: 'pathfinder-app-storage',
         partialize: (state) => ({
-          // Only persist theme, navigation, and project state
+          // Only persist theme, navigation, project, and selector state
           themeId: state.themeId,
           currentPage: state.currentPage,
           healthGlow: state.healthGlow,
           currentProjectId: state.currentProjectId,
+          scannedElements: state.scannedElements,
+          scannedTargetUrl: state.scannedTargetUrl,
+          lastScanTimestamp: state.lastScanTimestamp,
         }),
       }
     ),
@@ -247,5 +297,16 @@ export const useProjects = () => useAppStore(
     projects: state.projects,
     setCurrentProjectId: state.setCurrentProjectId,
     setProjects: state.setProjects,
+  }))
+);
+
+export const useSelectorScanner = () => useAppStore(
+  useShallow((state) => ({
+    scannedElements: state.scannedElements,
+    scannedTargetUrl: state.scannedTargetUrl,
+    lastScanTimestamp: state.lastScanTimestamp,
+    setScannedElements: state.setScannedElements,
+    clearScannedElements: state.clearScannedElements,
+    getScannedElements: state.getScannedElements,
   }))
 );
