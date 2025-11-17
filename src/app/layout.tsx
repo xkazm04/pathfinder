@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Test Agent - Automated Testing with AI",
+  title: "Pathfinder",
   description: "Intelligent automated testing platform powered by AI and Playwright",
 };
 

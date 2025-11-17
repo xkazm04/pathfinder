@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { runRegressionAnalysis } from '@/lib/diff/comparisonOrchestrator';
 
-export const maxDuration = 600; // 10 minutes for batch operations
+export const maxDuration = 300; // 5 minutes for batch operations (Vercel hobby plan limit)
 
 /**
  * POST /api/diff/batch-compare
