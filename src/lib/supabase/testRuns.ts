@@ -51,6 +51,8 @@ export async function updateTestRunStatus(
   }
 }
 
+// Removed updateTestRunProgress - temporary progress is now managed in Zustand store
+
 /**
  * Get a test run by ID with its results
  */

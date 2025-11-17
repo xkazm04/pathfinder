@@ -1,60 +1,118 @@
-/* ThemedSelect.module.css - SlimSelect Theme-Aware Styling */
+/* ThemedSelect.module.css - Compact Dark Theme Styling */
 
-/* Base SlimSelect overrides */
+/* ========================================
+   SLIMSELECT DEFAULT OVERRIDES - FORCE DARK
+   ======================================== */
+
+/* Override SlimSelect white backgrounds globally - NUCLEAR OPTION */
+:global(.ss-main),
+:global(.ss-main *),
+:global(.ss-content),
+:global(.ss-content *),
+:global(.ss-list),
+:global(.ss-list *),
+:global(.ss-option),
+:global(.ss-option *),
+:global(.ss-option span),
+:global(.ss-option div) {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Force dark background on specific container elements */
+:global(.ss-content),
+:global(div.ss-content) {
+  background: rgb(15, 23, 42) !important;
+  background-color: rgb(15, 23, 42) !important;
+}
+
+:global(.ss-list),
+:global(div.ss-list) {
+  background: rgb(15, 23, 42) !important;
+  background-color: rgb(15, 23, 42) !important;
+}
+
+:global(.ss-option),
+:global(div.ss-option) {
+  background: rgb(15, 23, 42) !important;
+  background-color: rgb(15, 23, 42) !important;
+  color: rgb(226, 232, 240) !important;
+}
+
+/* Override any possible SlimSelect default states */
+:global(.ss-option:not(.ss-disabled):not(.ss-selected):not(.ss-highlighted)) {
+  background: rgb(15, 23, 42) !important;
+  background-color: rgb(15, 23, 42) !important;
+}
+
+/* ========================================
+   BASE SLIMSELECT OVERRIDES - COMPACT
+   ======================================== */
+
 :global(.ss-main) {
   width: 100%;
-  min-height: 42px;
-  transition: all 0.3s ease;
+  min-height: 36px;
+  transition: all 0.2s ease;
 }
 
 :global(.ss-main .ss-single-selected) {
-  padding: 10px 16px;
+  padding: 8px 12px;
   display: flex;
   align-items: center;
-  min-height: 42px;
+  min-height: 36px;
+  font-size: 14px;
+  background: transparent !important;
 }
 
 :global(.ss-main .ss-arrow) {
-  margin: 0 12px;
+  margin: 0 8px;
+  width: 12px;
+  height: 12px;
 }
 
 :global(.ss-main .ss-arrow path) {
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
+/* Dropdown content animation */
 :global(.ss-content) {
-  border-radius: 8px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
   margin-top: 4px;
   overflow: hidden;
   z-index: 9999;
-  animation: slideIn 0.2s ease-out;
+  animation: dropdownSlideIn 0.15s ease-out;
 }
 
-@keyframes slideIn {
+@keyframes dropdownSlideIn {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-4px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
+/* List container */
 :global(.ss-list) {
-  max-height: 300px;
+  max-height: 240px;
   overflow-y: auto;
   scrollbar-width: thin;
-  padding: 4px 0;
+  padding: 2px;
 }
 
+/* Individual options - compact */
 :global(.ss-option) {
-  padding: 10px 16px;
+  padding: 8px 12px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   font-weight: 500;
+  font-size: 13px;
   position: relative;
+  border-radius: 4px;
+  margin: 1px 0;
 }
 
 :global(.ss-option:hover) {
@@ -62,197 +120,309 @@
 }
 
 :global(.ss-disabled) {
-  opacity: 0.5 !important;
+  opacity: 0.4 !important;
   cursor: not-allowed !important;
   pointer-events: none;
 }
 
+/* Search input - compact */
 :global(.ss-search input) {
-  padding: 10px 16px;
+  padding: 8px 12px;
   border: none;
-  border-bottom-width: 2px;
+  border-bottom-width: 1px;
   border-bottom-style: solid;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 :global(.ss-search input:focus) {
   outline: none;
 }
 
-/* Custom scrollbar for dropdown */
+/* Compact scrollbar */
 :global(.ss-list::-webkit-scrollbar) {
-  width: 8px;
+  width: 6px;
 }
 
 :global(.ss-list::-webkit-scrollbar-track) {
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 4px;
+  background: transparent;
 }
 
 :global(.ss-list::-webkit-scrollbar-thumb) {
-  background: color-mix(in srgb, var(--theme-primary, rgba(255, 255, 255, 0.3)) 60%, transparent);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
   transition: background 0.2s ease;
 }
 
 :global(.ss-list::-webkit-scrollbar-thumb:hover) {
-  background: color-mix(in srgb, var(--theme-primary, rgba(255, 255, 255, 0.5)) 80%, transparent);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* ========================================
-   THEMED SELECT - Dynamic Theme Support
-   Uses CSS custom properties set by React
+   SIZE VARIANTS - COMPACT
    ======================================== */
 
-/* Main select button */
-:global(.themed-select-dynamic.ss-main) {
-  background: var(--select-bg, var(--theme-surface));
-  border: 2px solid var(--select-border, var(--theme-border));
-  border-radius: 8px;
-  color: var(--select-text, var(--theme-text-primary));
-  font-weight: 500;
-}
-
-/* Small size variant */
+/* Small size (default for flow builder) */
 :global(.themed-select-sm.ss-main .ss-single-selected) {
-  padding: 6px 12px;
-  min-height: 34px;
-  font-size: 0.875rem;
+  padding: 6px 10px;
+  min-height: 32px;
+  font-size: 13px;
 }
 
-/* Large size variant */
+:global(.themed-select-sm.ss-main) {
+  min-height: 32px;
+}
+
+/* Medium size */
+:global(.themed-select-md.ss-main .ss-single-selected) {
+  padding: 8px 12px;
+  min-height: 36px;
+  font-size: 14px;
+}
+
+:global(.themed-select-md.ss-main) {
+  min-height: 36px;
+}
+
+/* Large size */
 :global(.themed-select-lg.ss-main .ss-single-selected) {
-  padding: 12px 16px;
-  min-height: 50px;
-  font-size: 1rem;
+  padding: 10px 14px;
+  min-height: 42px;
+  font-size: 14px;
 }
 
-/* Hover state */
+:global(.themed-select-lg.ss-main) {
+  min-height: 42px;
+}
+
+/* ========================================
+   DARK THEME - COMPACT STYLING
+   ======================================== */
+
+/* Main select button - dark theme optimized */
+:global(.themed-select-dynamic.ss-main) {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(100, 116, 139, 0.2) !important;
+  border-radius: 6px !important;
+  color: rgb(226, 232, 240) !important;
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+}
+
+/* Hover state - subtle enhancement */
 :global(.themed-select-dynamic.ss-main:hover:not(.ss-disabled)) {
-  border-color: var(--select-border-hover, var(--theme-primary));
+  background: rgba(30, 41, 59, 0.7) !important;
+  border-color: rgba(100, 116, 139, 0.3) !important;
 }
 
-/* Arrow/chevron */
+/* Arrow/chevron - theme aware */
 :global(.themed-select-dynamic.ss-main .ss-arrow path) {
-  stroke: var(--select-arrow, var(--theme-text-tertiary));
+  stroke: rgba(148, 163, 184, 0.6) !important;
 }
 
 :global(.themed-select-dynamic.ss-main:hover:not(.ss-disabled) .ss-arrow path) {
-  stroke: var(--select-arrow-hover, var(--theme-primary));
+  stroke: rgba(148, 163, 184, 1) !important;
 }
 
-/* Focus/Open state */
+/* Focus/Open state - accent color */
 :global(.themed-select-dynamic.ss-main.ss-open-above),
 :global(.themed-select-dynamic.ss-main.ss-open-below) {
-  border-color: var(--select-border-focus, var(--theme-accent));
-  box-shadow: 0 0 0 3px var(--select-focus-ring, rgba(var(--theme-accent-rgb), 0.2));
+  border-color: var(--select-border-focus, var(--theme-accent)) !important;
+  background: rgba(15, 23, 42, 0.8) !important;
+  box-shadow: 0 0 0 2px rgba(var(--theme-accent-rgb, 34, 211, 238), 0.15) !important;
 }
 
 /* Error state */
 :global(.themed-select-error.ss-main) {
-  border-color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  background: rgba(127, 29, 29, 0.1) !important;
 }
 
 :global(.themed-select-error.ss-main:focus),
 :global(.themed-select-error.ss-main.ss-open-above),
 :global(.themed-select-error.ss-main.ss-open-below) {
-  border-color: #ef4444 !important;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.7) !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15) !important;
 }
 
 /* Placeholder text */
 :global(.themed-select-dynamic .ss-single-selected.ss-disabled),
 :global(.themed-select-dynamic .ss-single-selected.placeholder) {
-  color: var(--select-placeholder, var(--theme-text-tertiary));
+  color: rgba(148, 163, 184, 0.5) !important;
+  background: transparent !important;
 }
 
-/* Dropdown content container */
-:global(.themed-select-dynamic .ss-content) {
-  background: color-mix(in srgb, var(--select-dropdown-bg, var(--theme-surface)) 95%, black) !important;
-  border: 2px solid var(--select-border, var(--theme-border)) !important;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--select-border, var(--theme-border)) !important;
+/* Dropdown content - dark, deep background - FORCE DARK */
+:global(.themed-select-dynamic .ss-content),
+:global(.ss-content.themed-select-dynamic) {
+  background: rgb(15, 23, 42) !important;
+  border: 1px solid rgba(100, 116, 139, 0.2) !important;
+  backdrop-filter: blur(12px);
 }
 
-/* Options */
-:global(.themed-select-dynamic .ss-option) {
-  color: var(--select-option-text, var(--theme-text-primary)) !important;
-  background: color-mix(in srgb, var(--select-dropdown-bg, var(--theme-surface)) 95%, black) !important;
+/* List container - force dark */
+:global(.themed-select-dynamic .ss-list),
+:global(.ss-content .ss-list) {
+  background: rgb(15, 23, 42) !important;
+}
+
+/* Options - dark background - FORCE OVERRIDE */
+:global(.themed-select-dynamic .ss-option),
+:global(.ss-content .ss-option),
+:global(.ss-list .ss-option) {
+  color: rgb(226, 232, 240) !important;
+  background: rgb(15, 23, 42) !important;
   font-weight: 500;
   letter-spacing: 0.01em;
 }
 
-/* Option hover state */
+/* Option hover - vibrant accent */
 :global(.themed-select-dynamic .ss-option:hover),
 :global(.themed-select-dynamic .ss-option.ss-highlighted) {
-  background: var(--select-option-hover-bg, var(--theme-surface-hover)) !important;
-  color: var(--select-option-hover-text, var(--theme-text-primary)) !important;
+  background: rgba(30, 41, 59, 0.8) !important;
+  color: rgb(255, 255, 255) !important;
   font-weight: 600;
-  transform: translateX(2px);
 }
 
-/* Selected option */
+/* Selected option - strong visual indicator */
 :global(.themed-select-dynamic .ss-option.ss-selected) {
-  background: var(--select-option-selected-bg, var(--theme-surface-hover)) !important;
-  color: var(--select-option-selected-text, var(--theme-text-primary)) !important;
+  background: rgba(30, 41, 59, 0.6) !important;
+  color: rgb(255, 255, 255) !important;
   font-weight: 600;
-  border-left: 3px solid var(--select-option-selected-border, var(--theme-accent)) !important;
-  padding-left: 13px;
+  border-left: 2px solid var(--select-option-selected-border, var(--theme-accent));
+  padding-left: 10px;
 }
 
 /* Disabled option */
 :global(.themed-select-dynamic .ss-option.ss-disabled) {
-  color: var(--select-option-disabled, var(--theme-text-tertiary)) !important;
-  background: color-mix(in srgb, var(--select-dropdown-bg, var(--theme-surface)) 95%, black) !important;
+  color: rgba(100, 116, 139, 0.4) !important;
+  background: transparent !important;
   opacity: 0.4;
   font-weight: 400;
 }
 
-/* Search input */
+/* Search input - dark theme */
 :global(.themed-select-dynamic .ss-search input) {
-  background: color-mix(in srgb, var(--select-search-bg, var(--theme-background)) 80%, black) !important;
-  color: var(--select-search-text, var(--theme-text-primary)) !important;
-  border-bottom-color: var(--select-border, var(--theme-border)) !important;
+  background: rgba(3, 7, 18, 0.6) !important;
+  color: rgb(226, 232, 240) !important;
+  border-bottom-color: rgba(100, 116, 139, 0.2) !important;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 :global(.themed-select-dynamic .ss-search input::placeholder) {
-  color: color-mix(in srgb, var(--select-placeholder, var(--theme-text-tertiary)) 70%, transparent) !important;
+  color: rgba(148, 163, 184, 0.4) !important;
   font-weight: 400;
 }
 
 :global(.themed-select-dynamic .ss-search input:focus) {
   border-bottom-color: var(--select-border-focus, var(--theme-accent)) !important;
-  background: color-mix(in srgb, var(--select-search-bg, var(--theme-background)) 90%, black) !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  background: rgba(3, 7, 18, 0.8) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* "No results" message */
 :global(.themed-select-dynamic .ss-search .ss-addable) {
-  color: var(--select-placeholder, var(--theme-text-tertiary)) !important;
-  padding: 10px 16px;
+  color: rgba(148, 163, 184, 0.5) !important;
+  padding: 8px 12px;
   font-style: italic;
   opacity: 0.7;
+  font-size: 13px;
 }
 
-/* Multi-select values (if needed in the future) */
+/* Multi-select values */
 :global(.themed-select-dynamic .ss-values .ss-value) {
-  background: var(--select-multi-value-bg, var(--theme-primary)) !important;
-  color: var(--select-multi-value-text, var(--theme-text-primary)) !important;
-  border: 1px solid var(--select-border, var(--theme-border)) !important;
+  background: rgba(30, 41, 59, 0.8) !important;
+  color: rgb(226, 232, 240) !important;
+  border: 1px solid rgba(100, 116, 139, 0.3) !important;
   border-radius: 4px;
-  padding: 4px 8px;
+  padding: 3px 6px;
   margin: 2px;
+  font-size: 12px;
 }
 
 :global(.themed-select-dynamic .ss-values .ss-value .ss-value-delete) {
-  color: var(--select-multi-value-text, var(--theme-text-primary)) !important;
-  margin-left: 6px;
+  color: rgb(226, 232, 240) !important;
+  margin-left: 4px;
 }
 
 :global(.themed-select-dynamic .ss-values .ss-value .ss-value-delete:hover) {
-  color: #ef4444 !important;
+  color: rgb(248, 113, 113) !important;
+}
+
+/* ========================================
+   CYBER THEME ENHANCEMENTS
+   ======================================== */
+
+/* Cyber theme specific - cyan accents */
+:global([data-theme="cyber"] .themed-select-dynamic.ss-main) {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(6, 182, 212, 0.2);
+}
+
+:global([data-theme="cyber"] .themed-select-dynamic.ss-main:hover:not(.ss-disabled)) {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(6, 182, 212, 0.3);
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.1);
+}
+
+:global([data-theme="cyber"] .themed-select-dynamic .ss-option:hover),
+:global([data-theme="cyber"] .themed-select-dynamic .ss-option.ss-highlighted) {
+  background: rgba(8, 51, 68, 0.5) !important;
+  color: rgb(236, 254, 255) !important;
+}
+
+:global([data-theme="cyber"] .themed-select-dynamic .ss-option.ss-selected) {
+  background: rgba(8, 51, 68, 0.7) !important;
+  border-left-color: rgb(34, 211, 238);
+}
+
+/* ========================================
+   CRIMSON THEME ENHANCEMENTS
+   ======================================== */
+
+:global([data-theme="crimson"] .themed-select-dynamic.ss-main) {
+  background: rgba(10, 10, 10, 0.8);
+  border-color: rgba(153, 27, 27, 0.15);
+}
+
+:global([data-theme="crimson"] .themed-select-dynamic.ss-main:hover:not(.ss-disabled)) {
+  background: rgba(26, 26, 26, 0.8);
+  border-color: rgba(153, 27, 27, 0.3);
+}
+
+:global([data-theme="crimson"] .themed-select-dynamic .ss-option:hover),
+:global([data-theme="crimson"] .themed-select-dynamic .ss-option.ss-highlighted) {
+  background: rgba(127, 29, 29, 0.3) !important;
+}
+
+:global([data-theme="crimson"] .themed-select-dynamic .ss-option.ss-selected) {
+  background: rgba(127, 29, 29, 0.5) !important;
+  border-left-color: rgb(185, 28, 28);
+}
+
+/* ========================================
+   SLATE THEME ENHANCEMENTS
+   ======================================== */
+
+:global([data-theme="slate"] .themed-select-dynamic.ss-main) {
+  background: rgba(15, 23, 42, 0.6);
+  border-color: rgba(100, 116, 139, 0.2);
+}
+
+:global([data-theme="slate"] .themed-select-dynamic.ss-main:hover:not(.ss-disabled)) {
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(251, 191, 36, 0.2);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.05);
+}
+
+:global([data-theme="slate"] .themed-select-dynamic .ss-option:hover),
+:global([data-theme="slate"] .themed-select-dynamic .ss-option.ss-highlighted) {
+  background: rgba(30, 41, 59, 0.8) !important;
+}
+
+:global([data-theme="slate"] .themed-select-dynamic .ss-option.ss-selected) {
+  background: rgba(30, 41, 59, 0.6) !important;
+  border-left-color: rgb(251, 191, 36);
 }
 
 /* Loading state placeholder */

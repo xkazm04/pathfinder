@@ -331,3 +331,25 @@ html {
     scrollbar-color: #f7ffac #00102a;
   }
 }
+
+/* ===== SLIMSELECT GLOBAL DARK THEME ENFORCEMENT ===== */
+/* Force dark theme on all SlimSelect elements */
+.ss-content,
+.ss-list,
+.ss-option {
+  background: rgb(15, 23, 42) !important;
+  color: rgb(226, 232, 240) !important;
+}
+
+.ss-main {
+  background: rgba(15, 23, 42, 0.6) !important;
+  color: rgb(226, 232, 240) !important;
+}
+
+/* Remove any white backgrounds from SlimSelect */
+.ss-content *,
+.ss-list *,
+.ss-option *,
+.ss-main * {
+  background: transparent !important;
+}

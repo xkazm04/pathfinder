@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useTheme } from '@/lib/stores/appStore';
+import { supabase } from '@/lib/supabase';
 import { TestSuiteSelector } from './components/TestSuiteSelector';
 import { ViewportConfigurator } from './components/ViewportConfigurator';
 import { LiveLogsPanel } from './components/LiveLogsPanel';
@@ -9,14 +11,14 @@ import { RunHistoryPanel } from './components/RunHistoryPanel';
 import { DemoBanner } from './components/DemoBanner';
 import { QueuePanel } from './components/QueuePanel';
 import { RunnerMonitor } from './components/RunnerMonitor';
+import { ScenarioTestReport } from './sub_RunnerReport/ScenarioTestReport';
 import { TestSuite, ConsoleLog, TestScenario } from '@/lib/types';
+import { CheckCircle2, XCircle } from 'lucide-react';
+import { ThemedButton } from '@/components/ui/ThemedButton';
 import { useRunQueue } from '@/hooks/useRunQueue';
-import { QueueBadge } from '@/components/ui/QueueBadge';
 import { VIEWPORTS } from '@/lib/config';
 import { useNavigation } from '@/lib/stores/appStore';
-import { motion } from 'framer-motion';
 import { getTestScenarios } from '@/lib/supabase/suiteAssets';
-import type { ScenarioResult } from '@/lib/supabase/scenarioResults';
 import {
   isFirstVisit,
   markAsVisited,
@@ -29,6 +31,7 @@ import {
   createResetExecutionHandler,
   type ViewportConfig,
   type ExecutionProgress,
+  type ScenarioExecutionResult,
 } from './lib/executionUtils';
 
 type ExecutionState = 'idle' | 'running' | 'completed' | 'failed';
@@ -40,11 +43,9 @@ export function RealRunner() {
   const [executionState, setExecutionState] = useState<ExecutionState>('idle');
   const [testRunId, setTestRunId] = useState<string | null>(null);
   const [viewports, setViewports] = useState<ViewportConfig[]>([
-    { id: 'mobile_small', name: VIEWPORTS.mobile_small.name, width: VIEWPORTS.mobile_small.width, height: VIEWPORTS.mobile_small.height, enabled: true },
-    { id: 'mobile_large', name: VIEWPORTS.mobile_large.name, width: VIEWPORTS.mobile_large.width, height: VIEWPORTS.mobile_large.height, enabled: true },
-    { id: 'tablet', name: VIEWPORTS.tablet.name, width: VIEWPORTS.tablet.width, height: VIEWPORTS.tablet.height, enabled: true },
-    { id: 'desktop', name: VIEWPORTS.desktop.name, width: VIEWPORTS.desktop.width, height: VIEWPORTS.desktop.height, enabled: false },
-    { id: 'desktop_large', name: VIEWPORTS.desktop_large.name, width: VIEWPORTS.desktop_large.width, height: VIEWPORTS.desktop_large.height, enabled: false },
+    { id: 'mobile_large', name: VIEWPORTS.mobile_large.name, width: VIEWPORTS.mobile_large.width, height: VIEWPORTS.mobile_large.height, enabled: false },
+    { id: 'tablet', name: VIEWPORTS.tablet.name, width: VIEWPORTS.tablet.width, height: VIEWPORTS.tablet.height, enabled: false },
+    { id: 'desktop', name: VIEWPORTS.desktop.name, width: VIEWPORTS.desktop.width, height: VIEWPORTS.desktop.height, enabled: true },
   ]);
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLog[]>([]);
   const [screenshots, setScreenshots] = useState<string[]>([]);
@@ -62,10 +63,63 @@ export function RealRunner() {
   const [showDemoBanner, setShowDemoBanner] = useState(false);
   const [executionStartTime, setExecutionStartTime] = useState<number | null>(null);
   const [currentScenarioName, setCurrentScenarioName] = useState<string | null>(null);
-  const [scenarioResults, setScenarioResults] = useState<ScenarioResult[]>([]);
+  const [scenarioResults, setScenarioResults] = useState<ScenarioExecutionResult[]>([]);
 
   // Queue management
   const { stats: queueStats, addJob } = useRunQueue({ suiteId: selectedSuite?.id });
+
+  // Real-time test run progress subscription
+  useEffect(() => {
+    if (!testRunId || executionState !== 'running') {
+      return;
+    }
+
+    const channel = supabase
+      .channel(`test-run-${testRunId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'test_runs',
+          filter: `id=eq.${testRunId}`,
+        },
+        (payload: any) => {
+          const updated = payload.new;
+
+          // Update progress
+          setProgress({
+            current: updated.current_scenario_index + 1 || 0,
+            total: updated.total_scenarios || 0,
+            percentage: updated.progress_percentage || 0,
+            passed: updated.progress_data?.passed || 0,
+            failed: updated.progress_data?.failed || 0,
+            skipped: updated.progress_data?.skipped || 0,
+            elapsedTime: updated.progress_data?.elapsedTime || 0,
+          });
+
+          // Update current scenario name
+          if (updated.current_scenario) {
+            setCurrentScenarioName(updated.current_scenario);
+          }
+
+          // Update logs
+          if (updated.logs && Array.isArray(updated.logs)) {
+            setConsoleLogs(updated.logs);
+          }
+
+          // Check if execution is complete
+          if (updated.status === 'completed' || updated.status === 'failed') {
+            setExecutionState(updated.status);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [testRunId, executionState]);
 
   // Live elapsed timer - updates every second during execution
   useEffect(() => {
@@ -166,6 +220,7 @@ export function RealRunner() {
       setScreenshots,
       setProgress,
       setScenarioResults,
+      setCurrentScenario: setCurrentScenarioName,
     });
   };
 
@@ -176,12 +231,45 @@ export function RealRunner() {
       setConsoleLogs,
       setScreenshots,
       setProgress,
+      setCurrentScenario: setCurrentScenarioName,
     })();
 
     // Reset timer-related state and scenario results
     setExecutionStartTime(null);
-    setCurrentScenarioName(null);
     setScenarioResults([]);
+  };
+
+  const abortExecution = async () => {
+    if (!testRunId) return;
+
+    try {
+      // Update test run status to cancelled
+      await fetch('/api/test-runs/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ runId: testRunId }),
+      });
+
+      setExecutionState('failed');
+      setConsoleLogs(prev => [
+        ...prev,
+        {
+          type: 'warn',
+          message: 'Test execution aborted by user',
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } catch (error: any) {
+      console.error('Failed to abort execution:', error);
+      setConsoleLogs(prev => [
+        ...prev,
+        {
+          type: 'error',
+          message: `Failed to abort: ${error.message}`,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    }
   };
 
   const handleRelaunch = (runId: string) => {
@@ -197,7 +285,7 @@ export function RealRunner() {
     navigateTo('reports');
   };
 
-  const canStart = selectedSuite && viewports.some(v => v.enabled) && executionState === 'idle';
+  const canStart = !!(selectedSuite && viewports.some(v => v.enabled) && executionState === 'idle');
 
   // Add to queue instead of immediate execution
   const addToQueue = async () => {
@@ -249,20 +337,6 @@ export function RealRunner() {
 
   return (
     <div className="p-8 pb-32">
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold mb-2" style={{ color: currentTheme.colors.text.primary }}>
-              Test Runner
-            </h1>
-            <p className="text-lg" style={{ color: currentTheme.colors.text.tertiary }}>
-              Execute Playwright tests across multiple viewports
-            </p>
-          </div>
-          <QueueBadge stats={queueStats} />
-        </div>
-      </motion.div>
 
       {/* Demo Banner */}
       {showDemoBanner && isDemoMode && (
@@ -284,13 +358,11 @@ export function RealRunner() {
             screenshots={screenshots}
             selectedSuiteName={selectedSuite?.name}
             scenarios={scenarios}
-            scenarioResults={scenarioResults}
             currentScenario={currentScenarioName || undefined}
-            testRunId={testRunId || undefined}
             canStart={canStart}
             onStartExecution={startExecution}
             onAddToQueue={addToQueue}
-            onResetExecution={resetExecution}
+            onAbortExecution={abortExecution}
           />
         </div>
 
@@ -305,6 +377,59 @@ export function RealRunner() {
           />
         </div>
       </div>
+
+      {/* Completion Status Banner */}
+      {(executionState === 'completed' || executionState === 'failed') && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-6 p-6 rounded-lg text-center"
+          style={{
+            backgroundColor: executionState === 'completed' ? '#22c55e10' : '#ef444410',
+            borderWidth: '1px',
+            borderStyle: 'solid',
+            borderColor: executionState === 'completed' ? '#22c55e30' : '#ef444430',
+          }}
+        >
+          {executionState === 'completed' ? (
+            <>
+              <CheckCircle2 className="w-12 h-12 mx-auto mb-3" style={{ color: '#22c55e' }} />
+              <h3 className="text-xl font-bold mb-2" style={{ color: currentTheme.colors.text.primary }}>
+                Tests Completed Successfully!
+              </h3>
+              <p style={{ color: currentTheme.colors.text.secondary }}>
+                {progress.passed} test{progress.passed !== 1 ? 's' : ''} passed
+              </p>
+            </>
+          ) : (
+            <>
+              <XCircle className="w-12 h-12 mx-auto mb-3" style={{ color: '#ef4444' }} />
+              <h3 className="text-xl font-bold mb-2" style={{ color: currentTheme.colors.text.primary }}>
+                Some Tests Failed
+              </h3>
+              <p style={{ color: currentTheme.colors.text.secondary }}>
+                {progress.failed} test{progress.failed !== 1 ? 's' : ''} failed, {progress.passed} passed
+              </p>
+            </>
+          )}
+          <ThemedButton
+            variant="secondary"
+            size="md"
+            onClick={resetExecution}
+            className="mt-4"
+            data-testid="run-again-btn"
+          >
+            Run Again
+          </ThemedButton>
+        </motion.div>
+      )}
+
+      {/* Full-Width Test Results */}
+      {scenarioResults && scenarioResults.length > 0 && (executionState === 'completed' || executionState === 'failed') && (
+        <div className="mt-6">
+          <ScenarioTestReport scenarioResults={scenarioResults} testRunId={testRunId || undefined} />
+        </div>
+      )}
 
       {/* Bottom Panel - Live Logs */}
       <LiveLogsPanel logs={consoleLogs} />

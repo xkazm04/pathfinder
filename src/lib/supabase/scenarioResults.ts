@@ -126,18 +126,48 @@ export async function saveAIScreenshotAnalysis(analysis: AIScreenshotAnalysis): 
  * Get AI analyses for a scenario result
  */
 export async function getAIAnalyses(scenarioResultId: string): Promise<AIScreenshotAnalysis[]> {
-  const { data, error } = await supabase
-    .from('ai_screenshot_analysis')
-    .select('*')
-    .eq('scenario_result_id', scenarioResultId)
-    .order('created_at', { ascending: true });
+  try {
+    console.log('[getAIAnalyses] Querying for scenario_result_id:', scenarioResultId);
 
-  if (error) {
-    console.error('Failed to fetch AI analyses:', error);
+    const { data, error } = await supabase
+      .from('ai_screenshot_analysis')
+      .select('*')
+      .eq('scenario_result_id', scenarioResultId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('[getAIAnalyses] Query error:', error);
+      return [];
+    }
+
+    console.log('[getAIAnalyses] Query returned:', data?.length || 0, 'records');
+
+    if (!data || data.length === 0) {
+      console.log('[getAIAnalyses] No records found for scenario_result_id:', scenarioResultId);
+      return [];
+    }
+
+    // Sanitize data to prevent Buffer/binary issues in browser
+    const sanitizedData = data.map(analysis => ({
+      ...analysis,
+      // Ensure all text fields are strings
+      screenshot_url: analysis.screenshot_url ? String(analysis.screenshot_url) : '',
+      suggestions: analysis.suggestions ? String(analysis.suggestions) : '',
+      model_used: analysis.model_used ? String(analysis.model_used) : 'AI',
+      // Ensure numeric fields are numbers
+      confidence_score: typeof analysis.confidence_score === 'number'
+        ? analysis.confidence_score
+        : parseFloat(String(analysis.confidence_score)) || 0,
+      // Keep JSONB fields as-is but ensure they're arrays
+      findings: Array.isArray(analysis.findings) ? analysis.findings : [],
+      issues: Array.isArray(analysis.issues) ? analysis.issues : [],
+    }));
+
+    return sanitizedData as AIScreenshotAnalysis[];
+  } catch (error) {
+    console.error('Exception in getAIAnalyses:', error);
     return [];
   }
-
-  return data || [];
 }
 
 /**

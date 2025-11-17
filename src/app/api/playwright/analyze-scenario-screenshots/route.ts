@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       try {
         // Prepare context for analysis
         const context = {
-          testName: scenarioResult.scenario_name || 'Unknown Scenario',
+          testName: `Scenario ${scenarioResult.scenario_id}`,
           viewport: `${scenarioResult.viewport} (${scenarioResult.viewport_size})`,
           targetUrl: 'Scenario execution',
           testStatus: scenarioResult.status,
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
           issues,
           suggestions,
           confidence_score: avgConfidence,
-          model_used: 'gemini-1.5-flash-latest',
+          model_used: 'gemini-flash-latest',
         });
 
         analyses.push({
@@ -167,7 +167,7 @@ export async function PUT(request: NextRequest) {
 
         for (const screenshotUrl of scenarioResult.screenshots) {
           const context = {
-            testName: scenarioResult.scenario_name || 'Unknown Scenario',
+            testName: `Scenario ${scenarioResult.scenario_id}`,
             viewport: `${scenarioResult.viewport} (${scenarioResult.viewport_size})`,
             targetUrl: 'Scenario execution',
             testStatus: scenarioResult.status,
@@ -200,7 +200,7 @@ export async function PUT(request: NextRequest) {
             issues,
             suggestions,
             confidence_score: avgConfidence,
-            model_used: 'gemini-1.5-flash-latest',
+            model_used: 'gemini-flash-latest',
           });
 
           analysisCount++;

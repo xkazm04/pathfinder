@@ -242,7 +242,7 @@ export async function analyzeScreenshots(
   await waitForRateLimit();
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash-latest'
+    model: 'gemini-flash-latest'
   });
 
   try {
@@ -287,7 +287,7 @@ export async function compareViewports(
   await waitForRateLimit();
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash-latest'
+    model: 'gemini-flash-latest'
   });
 
   try {

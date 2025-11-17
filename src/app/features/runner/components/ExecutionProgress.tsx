@@ -3,74 +3,19 @@
 import { motion } from 'framer-motion';
 import { useTheme } from '@/lib/stores/appStore';
 import { ThemedCard, ThemedCardHeader, ThemedCardContent } from '@/components/ui/ThemedCard';
+import { ThemedButton } from '@/components/ui/ThemedButton';
 import { ExecutionProgress as ProgressData } from '../lib/testExecution';
 import { formatDuration } from '../lib/testExecution';
-import { Activity, CheckCircle2, XCircle, Minus, LucideIcon } from 'lucide-react';
+import { Activity, CheckCircle2, XCircle, Minus, Clock, StopCircle } from 'lucide-react';
 
 interface ExecutionProgressProps {
   progress: ProgressData;
   testName?: string;
   currentScenario?: string;
+  onAbort?: () => void;
 }
 
-// Helper component for stat cards
-function StatCard({
-  value,
-  label,
-  icon: Icon,
-  color,
-  bgColor,
-  borderColor,
-  delay = 0
-}: {
-  value: number;
-  label: string;
-  icon?: LucideIcon;
-  color: string;
-  bgColor: string;
-  borderColor: string;
-  delay?: number;
-}) {
-  return (
-    <motion.div
-      className="p-4 rounded-lg text-center"
-      style={{
-        backgroundColor: bgColor,
-        borderWidth: '1px',
-        borderStyle: 'solid',
-        borderColor: borderColor,
-      }}
-      initial={{ scale: 0.9, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.3, delay }}
-    >
-      {Icon ? (
-        <div className="flex items-center justify-center mb-1">
-          <Icon className="w-4 h-4 mr-2" style={{ color }} />
-          <span className="text-2xl font-bold" style={{ color }}>
-            {value}
-          </span>
-        </div>
-      ) : (
-        <div className="text-2xl font-bold mb-1" style={{ color }}>
-          {value}
-        </div>
-      )}
-      <div className="text-xs" style={{ color }}>
-        {label}
-      </div>
-    </motion.div>
-  );
-}
-
-/**
- * UI Improvement 1: Live test execution progress visualization
- * - Animated progress bar with gradient
- * - Real-time statistics (passed/failed/skipped)
- * - Elapsed time counter
- * - Visual status indicators
- */
-export function ExecutionProgress({ progress, testName, currentScenario }: ExecutionProgressProps) {
+export function ExecutionProgress({ progress, testName, currentScenario, onAbort }: ExecutionProgressProps) {
   const { currentTheme } = useTheme();
 
   const getProgressColor = () => {
@@ -80,36 +25,30 @@ export function ExecutionProgress({ progress, testName, currentScenario }: Execu
     return currentTheme.colors.primary;
   };
 
+  const isRunning = progress.percentage < 100;
+
   return (
     <ThemedCard variant="glow">
-      <ThemedCardHeader
-        title="Test Execution"
-        subtitle={`${progress.current} of ${progress.total} tests completed`}
-        icon={<Activity className="w-5 h-5" />}
-      />
-      <ThemedCardContent>
-        {/* Test Suite Display */}
-        {testName && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-3 rounded-lg"
-            style={{
-              backgroundColor: `${currentTheme.colors.primary}15`,
-              borderWidth: '1px',
-              borderStyle: 'solid',
-              borderColor: `${currentTheme.colors.primary}40`,
-            }}
+      <div className="flex items-center justify-between p-6 pb-0">
+        <ThemedCardHeader
+          title={testName || 'Test Execution'}
+          subtitle={`${progress.current} of ${progress.total} tests`}
+          icon={<Activity className="w-5 h-5" />}
+        />
+        {onAbort && isRunning && (
+          <ThemedButton
+            variant="secondary"
+            size="sm"
+            onClick={onAbort}
+            leftIcon={<StopCircle className="w-4 h-4" />}
+            data-testid="abort-test-btn"
+            style={{ color: '#ef4444', borderColor: '#ef4444' }}
           >
-            <div className="text-xs font-medium mb-1" style={{ color: currentTheme.colors.text.tertiary }}>
-              Test Suite:
-            </div>
-            <div className="text-base font-semibold" style={{ color: currentTheme.colors.text.primary }}>
-              {testName}
-            </div>
-          </motion.div>
+            Abort Test
+          </ThemedButton>
         )}
-
+      </div>
+      <ThemedCardContent>
         {/* Current Scenario Display */}
         {currentScenario && (
           <motion.div
@@ -124,11 +63,9 @@ export function ExecutionProgress({ progress, testName, currentScenario }: Execu
             }}
           >
             <div className="flex items-center gap-2">
-              <div className="relative">
-                <Activity className="w-4 h-4 animate-pulse" style={{ color: currentTheme.colors.accent }} />
-              </div>
+              <Activity className="w-4 h-4 animate-pulse" style={{ color: currentTheme.colors.accent }} />
               <div className="flex-1">
-                <div className="text-xs font-medium mb-0.5" style={{ color: currentTheme.colors.text.tertiary }}>
+                <div className="text-xs font-medium" style={{ color: currentTheme.colors.text.tertiary }}>
                   Currently Running:
                 </div>
                 <div className="text-sm font-semibold" style={{ color: currentTheme.colors.text.primary }}>
@@ -139,9 +76,9 @@ export function ExecutionProgress({ progress, testName, currentScenario }: Execu
           </motion.div>
         )}
 
-        <div className="mt-4 space-y-6">
-          {/* Progress Bar */}
-          <div>
+        {/* Progress Bar - Only show during execution */}
+        {isRunning && (
+          <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium" style={{ color: currentTheme.colors.text.secondary }}>
                 Progress
@@ -151,8 +88,8 @@ export function ExecutionProgress({ progress, testName, currentScenario }: Execu
               </span>
             </div>
             <div
-              className="relative h-4 rounded-full overflow-hidden"
-              style={{ backgroundColor: currentTheme.colors.surface }}
+              className="relative h-3 rounded-full overflow-hidden"
+              style={{ backgroundColor: `${currentTheme.colors.border}40` }}
             >
               <motion.div
                 className="absolute inset-y-0 left-0 rounded-full"
@@ -166,54 +103,64 @@ export function ExecutionProgress({ progress, testName, currentScenario }: Execu
               />
             </div>
           </div>
+        )}
 
-          {/* Statistics Grid */}
-          <div className="grid grid-cols-4 gap-4">
-            <StatCard
-              value={progress.total}
-              label="Total"
-              color={currentTheme.colors.text.primary}
-              bgColor={currentTheme.colors.surface}
-              borderColor={currentTheme.colors.border}
-              delay={0}
-            />
-            <StatCard
-              value={progress.passed}
-              label="Passed"
-              icon={CheckCircle2}
-              color="#22c55e"
-              bgColor="#22c55e10"
-              borderColor="#22c55e30"
-              delay={0.05}
-            />
-            <StatCard
-              value={progress.failed}
-              label="Failed"
-              icon={XCircle}
-              color="#ef4444"
-              bgColor="#ef444410"
-              borderColor="#ef444430"
-              delay={0.1}
-            />
-            <StatCard
-              value={progress.skipped}
-              label="Skipped"
-              icon={Minus}
-              color={currentTheme.colors.text.tertiary}
-              bgColor={`${currentTheme.colors.text.tertiary}10`}
-              borderColor={`${currentTheme.colors.text.tertiary}30`}
-              delay={0.15}
-            />
+        {/* Compact Stats Panel */}
+        <div className="flex items-center justify-between gap-3 p-3 rounded-lg" style={{ backgroundColor: currentTheme.colors.surface }}>
+          {/* Passed */}
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" style={{ color: '#22c55e' }} />
+            <div>
+              <div className="text-lg font-bold" style={{ color: '#22c55e' }}>
+                {progress.passed}
+              </div>
+              <div className="text-xs" style={{ color: currentTheme.colors.text.tertiary }}>
+                Passed
+              </div>
+            </div>
           </div>
 
-          {/* Elapsed Time */}
-          <div className="flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-sm mb-1" style={{ color: currentTheme.colors.text.tertiary }}>
-                Elapsed Time
+          {/* Divider */}
+          <div className="w-px h-10" style={{ backgroundColor: currentTheme.colors.border }} />
+
+          {/* Failed */}
+          <div className="flex items-center gap-2">
+            <XCircle className="w-4 h-4" style={{ color: '#ef4444' }} />
+            <div>
+              <div className="text-lg font-bold" style={{ color: '#ef4444' }}>
+                {progress.failed}
               </div>
+              <div className="text-xs" style={{ color: currentTheme.colors.text.tertiary }}>
+                Failed
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="w-px h-10" style={{ backgroundColor: currentTheme.colors.border }} />
+
+          {/* Skipped */}
+          <div className="flex items-center gap-2">
+            <Minus className="w-4 h-4" style={{ color: currentTheme.colors.text.tertiary }} />
+            <div>
+              <div className="text-lg font-bold" style={{ color: currentTheme.colors.text.secondary }}>
+                {progress.skipped}
+              </div>
+              <div className="text-xs" style={{ color: currentTheme.colors.text.tertiary }}>
+                Skipped
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="w-px h-10" style={{ backgroundColor: currentTheme.colors.border }} />
+
+          {/* Elapsed Time */}
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4" style={{ color: currentTheme.colors.accent }} />
+            <div>
               <motion.div
-                className="text-2xl font-mono font-bold"
+                className="text-lg font-bold font-mono"
                 style={{ color: currentTheme.colors.accent }}
                 key={progress.elapsedTime}
                 initial={{ scale: 1.1 }}
@@ -222,6 +169,9 @@ export function ExecutionProgress({ progress, testName, currentScenario }: Execu
               >
                 {formatDuration(progress.elapsedTime)}
               </motion.div>
+              <div className="text-xs" style={{ color: currentTheme.colors.text.tertiary }}>
+                Elapsed
+              </div>
             </div>
           </div>
         </div>

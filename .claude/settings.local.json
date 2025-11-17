@@ -20,7 +20,8 @@
       "WebFetch(domain:console.groq.com)",
       "WebSearch",
       "Bash(del C:Userskazdakiropathfinderpubliclogologo_title.ts)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(dir C:Userskazdakiro /b)"
     ],
     "deny": [],
     "ask": []

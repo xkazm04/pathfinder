@@ -106,7 +106,7 @@ export function FlowActions({
         isLoading={isSaving}
         variant="primary"
         size="md"
-        leftIcon={<Save />}
+        leftIcon={<Save  size={15} />}
         fullWidth
         className="flex-1"
         data-testid="save-flow-btn"
@@ -119,7 +119,7 @@ export function FlowActions({
         disabled={flow.steps.length === 0}
         variant="secondary"
         size="md"
-        leftIcon={showPreview ? <EyeOff /> : <Eye />}
+        leftIcon={showPreview ? <EyeOff   size={15}/> : <Eye  size={15} />}
         fullWidth
         className="flex-1"
         data-testid="preview-flow-btn"
@@ -132,7 +132,7 @@ export function FlowActions({
         disabled={!isValid}
         variant="glow"
         size="md"
-        leftIcon={<Download />}
+        leftIcon={<Download size={15}/>}
         fullWidth
         className="flex-1"
         data-testid="export-code-btn"

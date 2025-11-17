@@ -6,7 +6,7 @@ import { ThemeVariant, Theme, themes } from '@/lib/theme';
 // Detected element type (from selector scanner)
 export interface DetectedElement {
   selector: string;
-  type: string;
+  type: 'button' | 'input' | 'link' | 'select' | 'text' | 'other';
   text?: string;
   placeholder?: string;
   ariaLabel?: string;

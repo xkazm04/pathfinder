@@ -256,14 +256,13 @@ export async function updateFlowScenario(
 }
 
 /**
- * Get flow scenarios for a suite (filter by category)
+ * Get flow scenarios for a suite
  */
 export async function getFlowScenarios(suiteId: string): Promise<TestScenario[]> {
   const { data, error } = await supabase
     .from('test_scenarios')
     .select('*')
     .eq('suite_id', suiteId)
-    .eq('category', 'flow-builder')
     .order('created_at', { ascending: false });
 
   if (error) {

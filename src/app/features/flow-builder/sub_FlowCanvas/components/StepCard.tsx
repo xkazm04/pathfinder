@@ -30,10 +30,10 @@ export function StepCard({
   return (
     <motion.div
       key={step.id}
-      initial={{ opacity: 0, y: -5 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -10 }}
-      layout
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       onClick={onSelect}
       className="px-3 py-2 rounded-lg cursor-pointer transition-all hover:scale-[1.005] group"
       style={{

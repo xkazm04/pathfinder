@@ -7,12 +7,21 @@ import { useNavigation, PageView, useProjects } from '@/lib/stores/appStore';
 import { getProjects } from '@/lib/supabase/projects';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import type { ForwardRefExoticComponent, RefAttributes } from 'react';
+import type { LucideProps } from 'lucide-react';
 
-const navigationItems = [
+interface NavigationItem {
+  name: string;
+  page: PageView;
+  icon: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>;
+  href?: string;
+}
+
+const navigationItems: NavigationItem[] = [
   { name: 'Suite Designer', page: 'designer' as PageView, icon: Wand2 },
   { name: 'Test Builder', page: 'builder' as PageView, icon: Workflow },
   { name: 'Runner', page: 'runner' as PageView, icon: Play },
-  { name: 'Reports', page: 'reports' as PageView, icon: FileText, href: '/reports' },  
+ // { name: 'Reports', page: 'reports' as PageView, icon: FileText, href: '/reports' },
 ];
 
 export function Sidebar() {

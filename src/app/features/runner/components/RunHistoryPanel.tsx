@@ -193,7 +193,7 @@ export function RunHistoryPanel({ suiteId, onRelaunch, onViewDetails }: RunHisto
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.2, delay: index * 0.03 }}
-                  className="p-3 rounded-lg cursor-pointer hover:scale-[1.01] transition-transform"
+                  className="p-3 rounded-lg cursor-pointer transition-transform"
                   style={{
                     backgroundColor: currentTheme.colors.surface,
                     borderWidth: '1px',

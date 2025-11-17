@@ -247,13 +247,13 @@ export function ThemedSelect({
   }, [currentTheme]);
 
   return (
-    <div className={`space-y-2 ${className}`} ref={containerRef}>
+    <div className={`space-y-1.5 ${className}`} ref={containerRef}>
       {/* Label */}
       {label && (
-        <label className="block text-sm font-medium" style={{ color: currentTheme.colors.text.secondary }}>
-          {icon && <span className="inline-flex items-center mr-1.5">{icon}</span>}
+        <label className="block text-xs font-medium" style={{ color: currentTheme.colors.text.secondary }}>
+          {icon && <span className="inline-flex items-center mr-1">{icon}</span>}
           {label}
-          {required && <span className="ml-1" style={{ color: '#ef4444' }}>*</span>}
+          {required && <span className="ml-0.5" style={{ color: '#ef4444' }}>*</span>}
         </label>
       )}
 
@@ -263,19 +263,19 @@ export function ThemedSelect({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="w-full rounded-lg flex items-center justify-center gap-2 px-4 py-2"
+            className="w-full rounded-md flex items-center justify-center gap-2 px-3"
             style={{
-              backgroundColor: `${currentTheme.colors.surface}60`,
-              borderWidth: '2px',
+              backgroundColor: 'rgba(15, 23, 42, 0.6)',
+              borderWidth: '1px',
               borderStyle: 'solid',
-              borderColor: currentTheme.colors.border,
+              borderColor: 'rgba(100, 116, 139, 0.2)',
               color: currentTheme.colors.text.tertiary,
-              minHeight: size === 'sm' ? '34px' : size === 'lg' ? '50px' : '42px',
+              minHeight: size === 'sm' ? '32px' : size === 'lg' ? '42px' : '36px',
             }}
           >
             <Loader2 className={`${iconSize[size]} animate-spin`} />
-            <span className={size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-base' : 'text-sm'}>
-              Loading options...
+            <span className={size === 'sm' ? 'text-xs' : size === 'lg' ? 'text-sm' : 'text-sm'}>
+              Loading...
             </span>
           </motion.div>
         ) : (
@@ -308,9 +308,10 @@ export function ThemedSelect({
       {/* Helper Text or Error */}
       {(helperText || error) && (
         <motion.div
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-1.5 text-xs"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+          className="flex items-center gap-1 text-xs mt-1"
           style={{ color: error ? '#ef4444' : currentTheme.colors.text.tertiary }}
         >
           {error || helperText}

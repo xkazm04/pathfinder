@@ -11,10 +11,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Development
 ```bash
 npm run dev         # Start development server with Turbopack
-npm run dev:clean   # Clear lock files and start dev server
+npm run dev:clean   # Clear lock files and start dev server (uses rm command - may need adjustment on Windows)
 npm run build       # Build for production
 npm run start       # Start production server
 npm run lint        # Run ESLint
+```
+
+**Note for Windows:** If `npm run dev:clean` fails, manually delete `.next/dev/lock` file or use PowerShell equivalent:
+```powershell
+powershell -Command "Remove-Item -Path .next/dev/lock -ErrorAction SilentlyContinue; npm run dev"
 ```
 
 ### Database Setup
@@ -57,10 +62,10 @@ navigateTo('designer'); // Changes page without URL change
 
 ### State Management with Zustand
 
-**Important:** The codebase migrated from React Context to **Zustand** for state management:
+**Important:** The codebase uses **Zustand** for state management across multiple stores:
 
 ```typescript
-// lib/stores/appStore.ts - Combined store
+// lib/stores/appStore.ts - Theme and Navigation
 import { useTheme, useNavigation } from '@/lib/stores/appStore';
 
 // Theme management
@@ -68,12 +73,35 @@ const { currentTheme, themeId, setTheme } = useTheme();
 
 // Navigation
 const { currentPage, reportId, navigateTo, setReportId } = useNavigation();
+
+// lib/stores/testExecutionStore.ts - Test Execution State
+import { useTestExecution } from '@/lib/stores/testExecutionStore';
+
+// Test execution management
+const {
+  executionState,      // 'idle' | 'running' | 'completed' | 'failed'
+  testRunId,
+  currentScenario,
+  progress,            // Current progress metrics
+  scenarioResults,     // Results array
+  screenshots,         // Screenshot URLs
+  logs,                // Console logs
+  startExecution,
+  updateProgress,
+  setCurrentScenario,
+  addLog,
+  addScenarioResult,
+  addScreenshot,
+  completeExecution,
+  abortExecution,
+  resetExecution,
+} = useTestExecution();
 ```
 
-**Migration Notes:**
-- `ThemeContext` → `useTheme()` hook from appStore
-- `NavigationContext` → `useNavigation()` hook from appStore
-- All imports should use `@/lib/stores/appStore`, not contexts
+**State Management Pattern:**
+- `appStore.ts` - Global app state (theme, navigation)
+- `testExecutionStore.ts` - Test runner execution state
+- All imports use `@/lib/stores/[storeName]`
 
 ### Theme System
 
@@ -112,28 +140,48 @@ src/
 │   ├── features/              # Feature-based page components
 │   │   ├── dashboard/        # Main dashboard view
 │   │   ├── designer/         # Test designer workflow (4 steps)
+│   │   ├── test-builder/     # Unified test builder (NL + Visual Flow)
+│   │   ├── flow-builder/     # Visual flow interface
+│   │   │   ├── sub_FlowCanvas/      # Modular canvas with sub-components
+│   │   │   │   ├── lib/             # Helpers (types, stepHelpers)
+│   │   │   │   ├── components/      # StepCard, StepList, DropZone, EmptyState
+│   │   │   │   └── FlowCanvas.tsx   # Main orchestrator
+│   │   │   └── sub_FlowSelectors/   # Element selectors
 │   │   ├── runner/           # Test execution interface
-│   │   └── reports/          # Test reports & history
+│   │   │   ├── sub_RunnerReport/    # Report sub-components
+│   │   │   │   ├── components/      # Header, Tabs, Results, Errors
+│   │   │   │   └── ScenarioTestReport.tsx
+│   │   │   ├── lib/                 # executionUtils, testExecution
+│   │   │   └── components/          # RunnerMonitor, ExecutionProgress, etc.
+│   │   ├── reports/          # Test reports & history
+│   │   └── diff/             # Visual regression comparison UI
 │   ├── api/                  # Next.js API routes
-│   │   ├── playwright/execute # Execute test suites
-│   │   ├── screenshots/capture # Capture screenshots
-│   │   ├── gemini/           # AI analysis endpoints
-│   │   └── diff/             # Visual regression APIs
+│   │   ├── playwright/       # Execute test suites, analyze scenarios
+│   │   ├── screenshots/      # Capture screenshots
+│   │   ├── gemini/           # AI analysis endpoints (intent, page, visual, NL-to-code)
+│   │   ├── ai/               # Root cause analysis, embeddings, similar failures
+│   │   ├── diff/             # Visual regression APIs (compare, baselines)
+│   │   ├── analyze/          # Site complexity analysis
+│   │   ├── test-runs/        # Test run APIs (cancel, fetch)
+│   │   └── ci/               # CI/CD integration (GitHub deployment)
 │   └── page.tsx              # SPA router (renders feature components)
 │
 ├── components/
-│   ├── ui/                   # Reusable themed components
+│   ├── ui/                   # Reusable themed components (ThemedCard, ThemedSelect, etc.)
 │   ├── layout/               # Header, Sidebar, MainLayout
 │   ├── logo/                 # LogoTitle component
 │   └── decorative/           # ThemeBackground
 │
 ├── lib/
 │   ├── stores/
-│   │   └── appStore.ts       # Zustand state management (theme + navigation)
+│   │   ├── appStore.ts             # Zustand state (theme + navigation)
+│   │   └── testExecutionStore.ts   # Test execution state management
 │   ├── theme.ts              # Theme definitions
 │   ├── types.ts              # TypeScript interfaces
-│   ├── supabase.ts           # Supabase client & operations
-│   ├── gemini.ts             # Gemini AI client
+│   ├── supabase/             # Supabase operations (suiteAssets, testRuns, etc.)
+│   ├── ai-client.ts          # Unified AI client (Gemini + Groq fallback)
+│   ├── gemini/               # Gemini-specific utilities (visualInspector, etc.)
+│   ├── groq.ts               # Groq fallback client
 │   ├── playwright/           # Playwright execution utilities
 │   ├── diff/                 # Screenshot comparison (pixelmatch)
 │   └── storage/              # Supabase storage helpers
@@ -142,6 +190,12 @@ src/
     ├── useSupabase.ts        # Supabase data operations
     └── useTestRuns.ts        # Real-time test run subscriptions
 ```
+
+**Modular Architecture Pattern:**
+- Features use `sub_*/` directories for complex sub-modules
+- Each sub-module has `lib/` (utilities), `components/` (UI), and main orchestrator
+- Compact one-row displays throughout UI (54-67% space reduction)
+- Hover-based progressive disclosure for actions
 
 ### Database Schema (Supabase)
 
@@ -172,21 +226,43 @@ subscribeToTestResults(runId, callback);
 **RESTful Next.js API Routes** in `src/app/api/`:
 
 ```
-POST /api/playwright/execute     # Execute test suite
-POST /api/screenshots/capture    # Capture screenshots
-POST /api/gemini/analyze-intent  # Analyze NL test intent
-POST /api/gemini/nl-to-playwright # Generate Playwright from NL
-POST /api/diff/compare           # Compare two screenshots
-POST /api/diff/batch-compare     # Batch screenshot comparison
-GET  /api/diff/baselines         # Fetch baselines
-POST /api/analyze/complexity     # Analyze site complexity
+# Test Execution
+POST /api/playwright/execute                      # Execute test suite
+POST /api/playwright/analyze-scenario-screenshots # Analyze scenario screenshots
+POST /api/playwright/execute-scenarios            # Execute specific scenarios
+POST /api/test-runs/cancel                        # Cancel running test
+
+# Screenshots & Visual Analysis
+POST /api/screenshots/capture                     # Capture screenshots
+POST /api/diff/compare                            # Compare two screenshots
+POST /api/diff/batch-compare                      # Batch screenshot comparison
+GET  /api/diff/baselines                          # Fetch baselines
+
+# AI/Gemini Integration
+POST /api/gemini/analyze-intent                   # Analyze NL test intent
+POST /api/gemini/nl-to-playwright                 # Generate Playwright from NL
+POST /api/gemini/analyze-page                     # Analyze page structure
+POST /api/gemini/analyze-visual                   # Visual analysis of screenshots
+POST /api/gemini/nl-to-steps                      # Convert NL to test steps
+POST /api/gemini/steps-to-nl                      # Convert steps to NL description
+
+# AI Analysis & Root Cause
+POST /api/ai/analyze-root-cause                   # Analyze test failure root cause
+GET  /api/ai/root-cause-analysis/[resultId]       # Get root cause for specific result
+POST /api/ai/similar-failures                     # Find similar test failures
+
+# Site Analysis
+POST /api/analyze/complexity                      # Analyze site complexity
+
+# CI/CD Integration
+POST /api/ci/deploy-github                        # GitHub deployment integration
 ```
 
 **Important:** Most endpoints use `maxDuration = 60-300s` for serverless compatibility with long-running operations (Playwright tests, AI analysis).
 
 ## Key Features
 
-### Visual Test Designer (Module 1)
+### Visual Test Designer
 **4-Step Workflow:**
 1. **Setup** - Name, URL, description
 2. **Analyzing** - Screenshot capture + Gemini analysis (with progress)
@@ -195,40 +271,85 @@ POST /api/analyze/complexity     # Analyze site complexity
 
 **Location:** `src/app/features/designer/`
 
-### Test Runner (Module 2)
+### Unified Test Builder
+**Dual-Mode Interface:**
+- **Visual Flow Mode** - Drag-and-drop step builder with modular architecture
+- **Natural Language Mode** - Write tests in plain English
+- **Bi-directional Sync** - Changes in either mode automatically update the other
+- **Compact UI** - One-row displays (54-67% space reduction)
+
+**Location:** `src/app/features/test-builder/` and `src/app/features/flow-builder/`
+
+### Test Runner
 - Select test suite + viewports (desktop, tablet, mobile)
-- Real-time execution monitoring with live logs
+- Real-time execution monitoring with live logs (via `testExecutionStore`)
 - Screenshot capture at key steps
 - Parallel execution support
+- Test cancellation via `/api/test-runs/cancel`
+- Detailed scenario reports in `sub_RunnerReport/`
 
 **Location:** `src/app/features/runner/`
 
-### Reports & Dashboard (Module 4)
+### Reports & Dashboard
 - Test run history & metrics
 - Pass/fail statistics with charts
 - Screenshot galleries
-- AI-detected issues
-- **Health Glow** visual feedback
+- AI-detected issues with root cause analysis
+- **Health Glow** visual feedback (Green ≥90%, Yellow 70-89%, Red <70%)
+- Similar failure detection for pattern recognition
 
 **Location:** `src/app/features/dashboard/` and `src/app/features/reports/`
 
-### Visual Regression Detection (Module 5)
+### Visual Regression Detection
 - Pixelmatch-based image diffing
 - Baseline management
 - Ignore regions configuration
 - Configurable thresholds
 - Batch comparison API
+- Dedicated diff viewer UI
 
-**Location:** `src/lib/diff/` and `src/app/api/diff/`
+**Location:** `src/lib/diff/`, `src/app/api/diff/`, `src/app/features/diff/`
 
-### Natural Language Test Input (Module 6)
+### Natural Language Test Input
 - Gemini intent analysis
 - Convert NL descriptions to Playwright code
+- Bidirectional conversion (steps ↔ NL)
 - Example prompts & templates
 
-**Location:** `src/lib/nl-test/` and `src/app/api/gemini/`
+**Location:** `src/app/features/test-builder/`, `src/app/api/gemini/`
+
+### Additional Features
+- **Plugin Marketplace** - Extensible architecture for custom test plugins (see `PLUGIN_SYSTEM.md`)
+- **Anomaly Detection** - ML-based pattern recognition across test runs (see `ANOMALY_DETECTION.md`)
+- **Test Queue Management** - Intelligent scheduling and prioritization (see `QUEUE_SYSTEM_GUIDE.md`)
+- **Preview Mode** - Validate tests before full execution (see `PREVIEW_MODE_IMPLEMENTATION.md`)
+- **CI/CD Integration** - GitHub deployment workflows via `/api/ci/deploy-github`
 
 ## Development Patterns
+
+### Modular Component Architecture
+When creating complex features with multiple sub-components:
+
+```
+feature-name/
+├── lib/                    # Pure utilities and helpers
+│   ├── types.ts           # TypeScript interfaces
+│   ├── helpers.ts         # Business logic functions
+│   └── index.ts           # Barrel exports
+├── components/            # Sub-components
+│   ├── ComponentA.tsx
+│   ├── ComponentB.tsx
+│   └── index.ts           # Barrel exports
+└── MainFeature.tsx        # Main orchestrator (keep under 100 lines)
+```
+
+**Benefits:**
+- Main component stays focused and readable
+- Easy to test individual utilities
+- Clear separation of concerns
+- Better code reusability
+
+**See:** `src/app/features/flow-builder/sub_FlowCanvas/` for reference implementation
 
 ### Themed Components
 ```typescript
@@ -257,6 +378,33 @@ navigateTo('designer');
 // Navigate to reports with specific run ID
 navigateTo('reports');
 setReportId(runId);
+```
+
+### Test Execution State Management
+```typescript
+// Use testExecutionStore for runner state
+import { useTestExecution } from '@/lib/stores/testExecutionStore';
+
+const {
+  executionState,
+  startExecution,
+  updateProgress,
+  addLog,
+  completeExecution,
+  resetExecution
+} = useTestExecution();
+
+// Start a test run
+startExecution(testRunId);
+
+// Update progress during execution
+updateProgress({ current: 5, total: 10, percentage: 50 });
+
+// Add console logs
+addLog({ type: 'info', message: 'Test step completed', timestamp: new Date().toISOString() });
+
+// Complete execution
+completeExecution('completed', scenarioResults);
 ```
 
 ### API Route Pattern
@@ -334,10 +482,39 @@ const subscription = supabase
 - Feature components are client components (`'use client'`)
 - Layout components use Suspense for lazy loading
 
+## UI/UX Design Principles
+
+### Compact Display Strategy
+The codebase follows a **one-row, high-density** UI pattern:
+
+- **Element Cards** - All info in single horizontal line (54% height reduction)
+- **Step Cards** - Icon + badge + description + config inline (67% height reduction)
+- **Hover Actions** - Buttons appear on hover to save space
+- **Progressive Disclosure** - Show essential info always, details on interaction
+
+**See:** `UI_UX_OPTIMIZATIONS.md` for detailed implementation guide
+
+### Component Styling
+- Use `inline styles` with theme values (NOT Tailwind color variants)
+- Compact padding: `px-2.5 py-1.5` for dense layouts
+- Small icons: `w-6 h-6` or `w-7 h-7`
+- Compact badges: `text-[10px]` with minimal padding
+- Hover effects: `hover:scale-105`, `hover:bg-opacity-50`
+
 ## Reference Documentation
 
+### Core Documentation
+- `README.md` - Project overview, features, and setup guide
 - `THEME_SYSTEM.md` - Comprehensive theme system guide
 - `SUPABASE_SETUP.md` - Storage bucket setup instructions
 - `IMPLEMENTATION_SUMMARY.md` - Health glow feature details
-- `.claude/module-*.md` - Feature module specifications
+- `.claude/module-*.md` - Feature module specifications (if exists)
 - `supabase/schema.sql` - Database schema
+
+### Feature-Specific Guides
+- `PLUGIN_SYSTEM.md` - Plugin architecture and marketplace
+- `ANOMALY_DETECTION.md` - Anomaly detection system details
+- `QUEUE_SYSTEM_GUIDE.md` - Test queue management
+- `PREVIEW_MODE_IMPLEMENTATION.md` - Preview mode feature guide
+- `UI_UX_OPTIMIZATIONS.md` - Compact UI design patterns
+- `FLOW_SELECTOR_REDESIGN.md` - Flow selector component redesign (if relevant)
